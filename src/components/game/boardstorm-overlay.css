@@ -1,0 +1,109 @@
+.boardstorm-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  pointer-events: none;
+}
+
+.boardstorm-overlay__veil {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgb(168 85 247 / 0.2),
+    rgb(37 99 235 / 0.25)
+  );
+  animation: boardstorm-veil 1.4s ease-in-out infinite;
+}
+
+.boardstorm-overlay__flash {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    115deg,
+    transparent 35%,
+    rgb(255 255 255 / 0.55) 50%,
+    transparent 65%
+  );
+  opacity: 0;
+}
+
+.boardstorm-overlay__flash--one {
+  animation: boardstorm-lightning 1.4s ease-in-out infinite;
+}
+
+.boardstorm-overlay__flash--two {
+  animation: boardstorm-lightning 1.4s ease-in-out infinite;
+  animation-delay: 0.45s;
+}
+
+.boardstorm-overlay__title {
+  position: relative;
+  z-index: 1;
+  font-size: clamp(1.5rem, 4vw, 2.25rem);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--color-text-inverse);
+  text-shadow: 0 2px 12px rgb(15 23 42 / 0.45);
+  animation: boardstorm-title 1.4s ease-in-out infinite;
+}
+
+.boardstorm-overlay__subtitle {
+  position: relative;
+  z-index: 1;
+  margin-top: 0.35rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: rgb(255 255 255 / 0.92);
+}
+
+@keyframes boardstorm-veil {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+
+@keyframes boardstorm-lightning {
+  0%,
+  78%,
+  100% {
+    opacity: 0;
+    transform: translateX(-30%);
+  }
+  80% {
+    opacity: 0.9;
+    transform: translateX(0);
+  }
+  84% {
+    opacity: 0;
+    transform: translateX(20%);
+  }
+}
+
+@keyframes boardstorm-title {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.04);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .boardstorm-overlay__veil,
+  .boardstorm-overlay__flash,
+  .boardstorm-overlay__title {
+    animation: none;
+  }
+}

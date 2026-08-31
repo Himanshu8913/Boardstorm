@@ -1,0 +1,137 @@
+.winner-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.winner-screen__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgb(15 23 42 / 0.55);
+  backdrop-filter: blur(6px);
+}
+
+.winner-screen__panel {
+  position: relative;
+  z-index: 2;
+  width: min(100%, 28rem);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  padding: 2rem 1.5rem;
+  text-align: center;
+  box-shadow: var(--shadow-lg);
+}
+
+.winner-screen__sparkle {
+  position: absolute;
+  top: -0.75rem;
+  right: 1.25rem;
+  font-size: 2rem;
+  opacity: 0;
+  transform: scale(0.6);
+  transition: transform var(--duration-slow) var(--ease-out),
+    opacity var(--duration-slow) var(--ease-out);
+}
+
+.winner-screen__sparkle--active {
+  opacity: 1;
+  transform: scale(1);
+  animation: winner-sparkle 1.8s ease-in-out infinite;
+}
+
+.winner-screen__avatar {
+  display: inline-flex;
+  height: 5rem;
+  width: 5rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-text-inverse);
+  box-shadow: var(--shadow-primary);
+}
+
+.winner-screen__eyebrow {
+  margin-top: 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-secondary);
+}
+
+.winner-screen__title {
+  margin-top: 0.35rem;
+  font-size: var(--text-page-title);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.winner-screen__subtitle {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+
+.winner-screen__actions {
+  margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.winner-confetti {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.winner-confetti__piece {
+  position: absolute;
+  top: -12%;
+  border-radius: 2px;
+  opacity: 0.9;
+  animation-name: winner-confetti-fall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+@keyframes winner-confetti-fall {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(110vh) rotate(720deg);
+    opacity: 0.2;
+  }
+}
+
+@keyframes winner-sparkle {
+  0%,
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+  50% {
+    transform: scale(1.15) rotate(12deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .winner-confetti__piece {
+    animation: none;
+    top: 10%;
+    opacity: 0.35;
+  }
+
+  .winner-screen__sparkle--active {
+    animation: none;
+  }
+}
