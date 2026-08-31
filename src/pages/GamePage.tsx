@@ -1,8 +1,8 @@
+import { Navigate } from 'react-router-dom';
 import { GameBoard } from '@/components/board';
 import {
   BoardMoodReveal,
   BoardstormOverlay,
-  MatchSetup,
   MobileGameControls,
   PlayerDicePanel,
   PlayerList,
@@ -22,7 +22,7 @@ export function GamePage() {
   const status = useGameStore((state) => state.match.status);
 
   if (status === 'idle') {
-    return <MatchSetup />;
+    return <Navigate to="/" replace />;
   }
 
   if (status === 'moodReveal') {

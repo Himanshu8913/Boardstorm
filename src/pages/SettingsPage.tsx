@@ -193,7 +193,7 @@ export function SettingsPage() {
 
           <SettingRow
             label="SFX volume"
-            description="Sound effects volume for Phase 12 audio."
+            description="Sound effects volume for gameplay."
           >
             <VolumeSlider
               id="sfx-volume"

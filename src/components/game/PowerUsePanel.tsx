@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { START_TILE, WIN_TILE } from '@/constants/board';
 import { TELEPORT_RANGE } from '@/constants/game';
 import { useGameController } from '@/hooks/useGameController';
@@ -20,6 +20,12 @@ export function PowerUsePanel({ playerId, disabled = false }: PowerUsePanelProps
   const [teleportTarget, setTeleportTarget] = useState(
     () => player?.position ?? START_TILE,
   );
+
+  useEffect(() => {
+    if (player) {
+      setTeleportTarget(player.position);
+    }
+  }, [player]);
 
   if (!player?.activePower) {
     return null;
