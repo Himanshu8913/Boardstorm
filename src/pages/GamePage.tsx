@@ -6,6 +6,7 @@ import { BoardstormOverlay } from '@/components/game/BoardstormOverlay';
 import type { PowerAction } from '@/components/game/PowerUsePanel';
 import { TileResolutionBanner } from '@/components/game/TileResolutionBanner';
 import { TurnHud } from '@/components/game/TurnHud';
+import { WinnerScreen } from '@/components/game/WinnerScreen';
 import type { BoardMood } from '@/types/boardMood';
 import { INITIAL_PLAYERS, type Player } from '@/types/player';
 import type { BoardTile } from '@/types/tile';
@@ -20,8 +21,10 @@ import {
   getSabotagePosition,
 } from '@/utils/powerEffects';
 import {
+  animateAlongPath,
   animatePlayerToPosition,
-  calculateTargetPosition,
+  getForwardMovementPath,
+  isWinningPosition,
 } from '@/utils/playerMovement';
 import {
   appendMessage,
@@ -58,10 +61,13 @@ const INITIAL_TURN_STATE = createInitialTurnState(
 
 export function GamePage() {
   const [gamePhase, setGamePhase] = useState<GamePhase>('mood-reveal');
-  const [boardMood] = useState<BoardMood>(() => pickRandomBoardMood());
+  const [boardMood, setBoardMood] = useState<BoardMood>(() =>
+    pickRandomBoardMood(),
+  );
   const [boardTiles, setBoardTiles] = useState<BoardTile[] | null>(null);
   const [players, setPlayers] = useState<Player[]>(INITIAL_PLAYERS);
   const [turnState, setTurnState] = useState(INITIAL_TURN_STATE);
+  const [winner, setWinner] = useState<Player | null>(null);
   const [selectedDice, setSelectedDice] =
     useState<Record<number, DieType>>(DEFAULT_DICE);
   const [displayValues, setDisplayValues] = useState<
@@ -77,6 +83,7 @@ export function GamePage() {
   const [mutatingTiles, setMutatingTiles] = useState<number[]>([]);
 
   const isBusy = activePlayerId !== null || boardstormActive;
+  const isGameOver = winner !== null;
   const currentPlayerId = getCurrentPlayerId(turnState);
 
   const currentPlayer = useMemo(
@@ -87,8 +94,49 @@ export function GamePage() {
   /** Generates the board using the revealed mood and begins play. */
   const handleStartGame = useCallback(() => {
     setBoardTiles(generateBoard(boardMood));
+    setWinner(null);
     setGamePhase('playing');
   }, [boardMood]);
+
+  /** Resets all game state and returns to the mood reveal screen. */
+  const handleRestart = useCallback(() => {
+    setBoardMood(pickRandomBoardMood());
+    setBoardTiles(null);
+    setPlayers(INITIAL_PLAYERS.map((player) => ({ ...player })));
+    setTurnState(INITIAL_TURN_STATE);
+    setSelectedDice(DEFAULT_DICE);
+    setDisplayValues({});
+    setLastRolls({});
+    setActivePlayerId(null);
+    setCanEndTurn(false);
+    setResolutionMessage(null);
+    setBoardstormActive(false);
+    setMutatingTiles([]);
+    setWinner(null);
+    setGamePhase('mood-reveal');
+  }, []);
+
+  /**
+   * Declares a winner if the player reached tile 100.
+   *
+   * @returns True if the game has ended
+   */
+  const declareWinnerIfNeeded = useCallback(
+    (playerId: number, position: number): boolean => {
+      if (!isWinningPosition(position, BOARD_TILE_COUNT)) {
+        return false;
+      }
+
+      const player = players.find((entry) => entry.id === playerId);
+      if (player) {
+        setWinner(player);
+        setResolutionMessage(`🎉 ${player.name} wins the game!`);
+      }
+
+      return true;
+    },
+    [players],
+  );
 
   const updatePlayerPosition = useCallback(
     (playerId: number, position: number) => {
@@ -220,11 +268,16 @@ export function GamePage() {
       const dieType = selectedDice[playerId] ?? 'safe';
       const shieldDisabled = dieType === 'risk';
       const rollResult = rollDie(dieType);
-      const landingPosition = calculateTargetPosition(
+      const movementPath = getForwardMovementPath(
         player.position,
         rollResult,
         BOARD_TILE_COUNT,
       );
+      const landingPosition =
+        movementPath.length > 0
+          ? movementPath[movementPath.length - 1]
+          : player.position;
+      const overshot = player.position + rollResult > BOARD_TILE_COUNT;
 
       setActivePlayerId(playerId);
       setCanEndTurn(false);
@@ -237,15 +290,21 @@ export function GamePage() {
 
       setLastRolls((current) => ({ ...current, [playerId]: rollResult }));
 
-      if (landingPosition !== player.position) {
-        await animatePlayerToPosition(
-          player.position,
-          landingPosition,
-          (position) => updatePlayerPosition(playerId, position),
+      if (movementPath.length > 0) {
+        await animateAlongPath(movementPath, (position) =>
+          updatePlayerPosition(playerId, position),
         );
       }
 
       let statusMessage: string | null = null;
+
+      if (overshot && !isWinningPosition(landingPosition, BOARD_TILE_COUNT)) {
+        statusMessage = appendMessage(
+          statusMessage,
+          `Bounce-back! Ended on tile ${landingPosition}.`,
+        );
+      }
+
       statusMessage = appendMessage(
         statusMessage,
         await resolveLandingCollisions(playerId, landingPosition),
@@ -268,11 +327,17 @@ export function GamePage() {
       }
 
       setActivePlayerId(null);
+
+      if (declareWinnerIfNeeded(playerId, finalPosition)) {
+        return;
+      }
+
       setCanEndTurn(true);
     },
     [
       applyTileResolution,
       boardTiles,
+      declareWinnerIfNeeded,
       players,
       resolveLandingCollisions,
       selectedDice,
@@ -282,13 +347,13 @@ export function GamePage() {
 
   const handleRoll = useCallback(
     async (playerId: number) => {
-      if (isBusy || !isPlayersTurn(turnState, playerId)) {
+      if (isBusy || isGameOver || !isPlayersTurn(turnState, playerId)) {
         return;
       }
 
       await performRoll(playerId);
     },
-    [isBusy, performRoll, turnState],
+    [isBusy, isGameOver, performRoll, turnState],
   );
 
   /**
@@ -296,7 +361,7 @@ export function GamePage() {
    */
   const handleUsePower = useCallback(
     async (playerId: number, action: PowerAction) => {
-      if (isBusy || !isPlayersTurn(turnState, playerId) || !boardTiles) {
+      if (isBusy || isGameOver || !isPlayersTurn(turnState, playerId) || !boardTiles) {
         return;
       }
 
@@ -361,6 +426,11 @@ export function GamePage() {
           appendMessage(current, collisionMessage),
         );
 
+        if (declareWinnerIfNeeded(playerId, finalPosition)) {
+          setActivePlayerId(null);
+          return;
+        }
+
         setActivePlayerId(null);
         return;
       }
@@ -404,7 +474,9 @@ export function GamePage() {
       boardTiles,
       canEndTurn,
       clearPlayerPower,
+      declareWinnerIfNeeded,
       isBusy,
+      isGameOver,
       performRoll,
       players,
       resolveLandingCollisions,
@@ -442,7 +514,7 @@ export function GamePage() {
 
   /** Ends the current player's turn and passes play to the next player. */
   const handleEndTurn = useCallback(async () => {
-    if (!canEndTurn || isBusy) {
+    if (!canEndTurn || isBusy || isGameOver) {
       return;
     }
 
@@ -456,7 +528,7 @@ export function GamePage() {
     if (shouldTriggerBoardstorm(previousRound, nextTurn.round)) {
       await runBoardstorm();
     }
-  }, [canEndTurn, isBusy, runBoardstorm, turnState]);
+  }, [canEndTurn, isBusy, isGameOver, runBoardstorm, turnState]);
 
   if (gamePhase === 'mood-reveal') {
     return <BoardMoodReveal mood={boardMood} onStart={handleStartGame} />;
@@ -495,7 +567,7 @@ export function GamePage() {
             isRolling={activePlayerId === player.id}
             isCurrentTurn={player.id === currentPlayerId}
             canEndTurn={canEndTurn && player.id === currentPlayerId}
-            isDisabled={isBusy}
+            isDisabled={isBusy || isGameOver}
             onSelectDie={(dieType) =>
               setSelectedDice((current) => ({
                 ...current,
@@ -508,6 +580,7 @@ export function GamePage() {
           />
         ))}
       </div>
+      {winner && <WinnerScreen winner={winner} onRestart={handleRestart} />}
     </section>
   );
 }
