@@ -26,4 +26,21 @@
   .page-gradient {
     @apply bg-gradient-to-b from-background via-background to-background-accent;
   }
+
+  .animate-modal-in {
+    animation: modal-in var(--duration-normal) var(--ease-out) forwards;
+  }
+}
+
+@layer utilities {
+  @keyframes modal-in {
+    from {
+      opacity: 0;
+      transform: scale(0.95) translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
 }
