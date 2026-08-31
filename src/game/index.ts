@@ -1,4 +1,7 @@
 export * from '@/game/random';
+export * from '@/game/controller/gameController';
+export * from '@/game/events/createEvent';
+export * from '@/game/events/payloads';
 export * from '@/game/engines/aiEngine';
 export * from '@/game/engines/boardEngine';
 export * from '@/game/engines/boardstormEngine';
