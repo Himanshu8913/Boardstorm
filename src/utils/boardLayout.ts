@@ -19,3 +19,19 @@ export function getBoardGrid(): number[][] {
     Array.from({ length: BOARD_COLS }, (_, col) => getTileNumber(row, col)),
   );
 }
+
+export type TileGridPosition = {
+  row: number;
+  col: number;
+};
+
+/** Returns grid coordinates for a tile number in snake layout. */
+export function getTileGridPosition(tileNumber: number): TileGridPosition {
+  const fromBottom = Math.floor((tileNumber - 1) / BOARD_COLS);
+  const row = BOARD_ROWS - 1 - fromBottom;
+  const indexInRow = (tileNumber - 1) % BOARD_COLS;
+  const col =
+    fromBottom % 2 === 0 ? indexInRow : BOARD_COLS - 1 - indexInRow;
+
+  return { row, col };
+}
