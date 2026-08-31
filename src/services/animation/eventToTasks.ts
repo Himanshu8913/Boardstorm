@@ -12,7 +12,9 @@ import type {
 import { ANIMATION_TIMING } from '@/services/animation/timing';
 
 function isTeleportMove(payload: PlayerMovedPayload): boolean {
-  return payload.path.length === 1 && Math.abs(payload.to - payload.from) > 1;
+  return (
+    payload.path?.length === 1 && Math.abs(payload.to - payload.from) > 1
+  );
 }
 
 export function eventToAnimationTasks(event: GameEvent): AnimationTask[] {
@@ -31,7 +33,7 @@ export function eventToAnimationTasks(event: GameEvent): AnimationTask[] {
 
     case 'player_moved': {
       const payload = event.payload as PlayerMovedPayload;
-      if (payload.path.length === 0) {
+      if (!payload.path || payload.path.length === 0) {
         return [];
       }
 

@@ -219,19 +219,18 @@ function resolveRollForPlayer(playerId: PlayerId): void {
     } satisfies PlayerMovedPayload);
   }
 
-  const eventType =
-    tile.type === 'trap'
-      ? 'trap_triggered'
-      : tile.type === 'boost'
-        ? 'boost_triggered'
-        : 'player_moved';
-
-  emit(eventType, {
+  const tileResolved = {
     playerId,
     tileNumber: landingPosition,
     tileType: tile.type,
     message: resolution.message,
-  } satisfies TileResolvedPayload);
+  } satisfies TileResolvedPayload;
+
+  if (tile.type === 'trap') {
+    emit('trap_triggered', tileResolved);
+  } else if (tile.type === 'boost') {
+    emit('boost_triggered', tileResolved);
+  }
 
   store.setUI({
     ...store.ui,
