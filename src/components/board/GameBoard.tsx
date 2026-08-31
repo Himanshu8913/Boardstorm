@@ -3,10 +3,11 @@ import { Tile } from '@/components/board/Tile';
 import { useGameStore } from '@/hooks/useGameStore';
 import {
   getCurrentPlayerId,
-  getPlayersOnTile,
+  getPlayersOnTileForDisplay,
   getTileMap,
 } from '@/store/selectors';
 import { getBoardGrid } from '@/utils/boardLayout';
+import type { MoveTaskPayload } from '@/services/animation/payloads';
 import { cn } from '@/components/ui/cn';
 import './board.css';
 
@@ -30,6 +31,10 @@ export function GameBoard({ className }: GameBoardProps) {
     : null;
   const activeEffectTile = animation.activeTileEffect?.tileNumber ?? null;
   const mutatingTiles = new Set(animation.mutatingTileNumbers);
+  const hoppingPlayerId =
+    animation.current?.type === 'move'
+      ? (animation.current.payload as MoveTaskPayload).playerId
+      : null;
 
   return (
     <div
@@ -46,7 +51,11 @@ export function GameBoard({ className }: GameBoardProps) {
       {grid.map((row, rowIndex) =>
         row.map((tileNumber, columnIndex) => {
           const tile = tileMap.get(tileNumber);
-          const playersOnTile = getPlayersOnTile(players, tileNumber);
+          const playersOnTile = getPlayersOnTileForDisplay(
+            players,
+            tileNumber,
+            animation.visualPositions,
+          );
 
           return (
             <Tile
@@ -60,6 +69,7 @@ export function GameBoard({ className }: GameBoardProps) {
                 activeEffectTile === tileNumber ? activeEffect : null
               }
               playerMotions={animation.playerMotions}
+              hoppingPlayerId={hoppingPlayerId}
               currentPlayerId={currentPlayerId}
               rowIndex={rowIndex}
               columnIndex={columnIndex}

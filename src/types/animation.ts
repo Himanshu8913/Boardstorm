@@ -34,4 +34,8 @@ export interface AnimationState {
   activeTileEffect: ActiveTileEffect | null;
   playerMotions: Record<PlayerId, PlayerMotionEffect>;
   boardRumbling: boolean;
+  /** Visual-only token positions during hop animations. */
+  visualPositions: Record<PlayerId, number | null>;
+  /** Visual dice roll in progress (does not block gameplay). */
+  rollingPlayerId: PlayerId | null;
 }

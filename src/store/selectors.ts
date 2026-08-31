@@ -2,6 +2,7 @@ import type { GameStore, GameplaySavePayload } from '@/types/gameStore';
 import type { PlayerId } from '@/types/playerId';
 import type { BoardTile } from '@/types/tile';
 import type { TurnState } from '@/types/turn';
+import type { PlayerState } from '@/types/player';
 
 export function getCurrentPlayerId(turn: TurnState): PlayerId | null {
   if (turn.playerOrder.length === 0) {
@@ -20,6 +21,17 @@ export function getPlayersOnTile(
   tileNumber: number,
 ): GameStore['players'][PlayerId][] {
   return Object.values(players).filter((player) => player.position === tileNumber);
+}
+
+export function getPlayersOnTileForDisplay(
+  players: GameStore['players'],
+  tileNumber: number,
+  visualPositions: Record<PlayerId, number | null>,
+): PlayerState[] {
+  return Object.values(players).filter((player) => {
+    const position = visualPositions[player.id] ?? player.position;
+    return position === tileNumber;
+  });
 }
 
 export function isMatchActive(match: GameStore['match']): boolean {

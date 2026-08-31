@@ -63,6 +63,8 @@ export const defaultAnimationState = (): AnimationState => ({
   activeTileEffect: null,
   playerMotions: {},
   boardRumbling: false,
+  visualPositions: {},
+  rollingPlayerId: null,
 });
 
 export const defaultSettingsState = (): SettingsState => ({

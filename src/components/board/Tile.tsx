@@ -19,6 +19,7 @@ export type TileProps = {
   isMutating?: boolean;
   activeEffect?: TileType | null;
   playerMotions?: Record<number, PlayerMotionEffect>;
+  hoppingPlayerId?: number | null;
   currentPlayerId?: number | null;
   rowIndex: number;
   columnIndex: number;
@@ -32,6 +33,7 @@ export function Tile({
   isMutating = false,
   activeEffect = null,
   playerMotions = {},
+  hoppingPlayerId = null,
   currentPlayerId = null,
   rowIndex,
   columnIndex,
@@ -40,6 +42,14 @@ export function Tile({
   const displayType = getDisplayTileType(tile, showType);
   const showIcon = isStart || (showType && displayType !== 'safe');
   const isActiveEffect = activeEffect !== null && activeEffect === displayType;
+  const tileEffectClass =
+    isActiveEffect && activeEffect === 'trap'
+      ? 'anim-tile-trap'
+      : isActiveEffect && activeEffect === 'boost'
+        ? 'anim-tile-boost'
+        : isActiveEffect && activeEffect === 'mystery'
+          ? 'anim-tile-mystery'
+          : null;
 
   return (
     <div
@@ -51,6 +61,7 @@ export function Tile({
         'relative aspect-square min-w-0 rounded-xs shadow-sm transition-shadow duration-fast sm:rounded-sm',
         getTileSurfaceClass(tile, showType, isStart),
         isMutating && 'tile-mutating',
+        tileEffectClass,
         isActiveEffect && 'shadow-md ring-2 ring-inset ring-white/60',
       )}
     >
@@ -72,6 +83,7 @@ export function Tile({
             stackIndex={index}
             stackTotal={players.length}
             motion={playerMotions[player.id] ?? null}
+            isHopping={hoppingPlayerId === player.id}
             isCurrentTurn={currentPlayerId === player.id}
           />
         ))}

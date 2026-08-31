@@ -8,6 +8,7 @@ export type PlayerTokenProps = {
   stackIndex: number;
   stackTotal: number;
   motion?: PlayerMotionEffect | null;
+  isHopping?: boolean;
   isCurrentTurn?: boolean;
 };
 
@@ -22,6 +23,7 @@ export function PlayerToken({
   stackIndex,
   stackTotal,
   motion = null,
+  isHopping = false,
   isCurrentTurn = false,
 }: PlayerTokenProps) {
   const offset = getStackOffset(stackIndex, stackTotal);
@@ -39,6 +41,7 @@ export function PlayerToken({
         className={cn(
           'h-[clamp(10px,30%,22px)] w-[clamp(10px,30%,22px)] rounded-full border-2 border-white shadow-sm',
           player.isGhost && 'opacity-90',
+          isHopping && 'anim-token-hop',
           isCurrentTurn && 'ring-2 ring-primary ring-offset-1',
           motion && motionClasses[motion],
         )}

@@ -17,6 +17,7 @@ function PlayerTurnPanel({
   const controller = useGameController();
   const player = useGameStore((state) => state.players[playerId]);
   const dice = useGameStore((state) => state.dice);
+  const animation = useGameStore((state) => state.animation);
   const canEndTurn = useGameStore((state) => state.ui.canEndTurn);
   const currentPlayerId = useGameStore((state) =>
     getCurrentPlayerId(state.turn),
@@ -37,6 +38,7 @@ function PlayerTurnPanel({
   const selectedDie = dice.selected[playerId] ?? 'safe';
   const lastRoll = dice.lastRoll[playerId] ?? null;
   const rolling = dice.rollingPlayerId === playerId;
+  const spinning = animation.rollingPlayerId === playerId;
 
   return (
     <div
@@ -74,6 +76,7 @@ function PlayerTurnPanel({
             dieType={selectedDie}
             value={lastRoll}
             rolling={rolling}
+            spinning={spinning}
           />
 
           <div className="grid grid-cols-2 gap-3">

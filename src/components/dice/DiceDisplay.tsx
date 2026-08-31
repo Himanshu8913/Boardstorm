@@ -5,6 +5,7 @@ export type DiceDisplayProps = {
   dieType: DieType | null;
   value: number | null;
   rolling?: boolean;
+  spinning?: boolean;
   className?: string;
 };
 
@@ -12,6 +13,7 @@ export function DiceDisplay({
   dieType,
   value,
   rolling = false,
+  spinning = false,
   className,
 }: DiceDisplayProps) {
   const label =
@@ -25,7 +27,8 @@ export function DiceDisplay({
     <div
       className={cn(
         'flex min-h-[88px] flex-col items-center justify-center rounded-lg border border-border bg-background-accent px-4 py-3 text-center',
-        rolling && 'animate-pulse',
+        (rolling || spinning) && 'animate-pulse',
+        spinning && 'anim-dice-spin',
         className,
       )}
       aria-live="polite"

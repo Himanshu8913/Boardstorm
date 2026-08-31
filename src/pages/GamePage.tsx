@@ -10,10 +10,12 @@ import {
   WinnerScreen,
   useGhostTurn,
 } from '@/components/game';
+import { useAnimationQueue } from '@/hooks/useAnimationQueue';
 import { useGameStore } from '@/hooks/useGameStore';
 
 export function GamePage() {
   useGhostTurn();
+  useAnimationQueue();
 
   const status = useGameStore((state) => state.match.status);
 
