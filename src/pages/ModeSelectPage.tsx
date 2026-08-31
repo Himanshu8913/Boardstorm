@@ -1,18 +1,28 @@
 import type { CSSProperties } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { MODE_OPTIONS } from '@/constants/modeSelect';
 import { ModeOptionIcon } from '@/components/mode-select/ModeOptionIcon';
 import { useGameController } from '@/hooks/useGameController';
+import { useGameStore } from '@/hooks/useGameStore';
 import type { GameMode } from '@/types/match';
 import '@/components/mode-select/mode-select.css';
 
 export function ModeSelectPage() {
   const navigate = useNavigate();
   const controller = useGameController();
+  const status = useGameStore((state) => state.match.status);
+
+  if (status === 'setup') {
+    return <Navigate to="/setup" replace />;
+  }
+
+  if (status === 'moodReveal' || status === 'playing') {
+    return <Navigate to="/game" replace />;
+  }
 
   const startMode = (mode: GameMode) => {
-    controller.startMatch(mode);
-    navigate('/game');
+    controller.prepareMatch(mode);
+    navigate('/setup');
   };
 
   return (

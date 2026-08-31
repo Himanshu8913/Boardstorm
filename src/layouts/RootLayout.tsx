@@ -11,7 +11,9 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
 export function RootLayout() {
   const location = useLocation();
   const isFullBleed =
-    location.pathname === '/' || location.pathname === '/modes';
+    location.pathname === '/' ||
+    location.pathname === '/modes' ||
+    location.pathname === '/setup';
 
   return (
     <div className="page-gradient flex min-h-screen flex-col overflow-x-hidden">

@@ -7,6 +7,7 @@ import { MAX_PLAYERS } from '@/constants/game';
 import type { GameMode } from '@/types/match';
 import type { PlayerId } from '@/types/playerId';
 import type { PlayersState } from '@/types/player';
+import type { MatchSetupConfig } from '@/types/setup';
 import { START_TILE } from '@/constants/board';
 
 export function createPlayersForMode(mode: GameMode): PlayersState {
@@ -20,6 +21,35 @@ export function createPlayersForMode(mode: GameMode): PlayersState {
       id,
       name: names[index] ?? `Player ${id}`,
       color: DEFAULT_PLAYER_COLORS[index] ?? DEFAULT_PLAYER_COLORS[0],
+      position: START_TILE,
+      activePower: null,
+      lastMysteryTile: null,
+      isGhost: mode === 'solo' && id !== 1,
+    };
+  }
+
+  return players;
+}
+
+export function createPlayersFromSetup(
+  mode: GameMode,
+  config: MatchSetupConfig,
+): PlayersState {
+  const count = mode === 'solo' ? MAX_PLAYERS : config.playerCount;
+  const players: PlayersState = {};
+
+  for (let index = 0; index < count; index++) {
+    const id = (index + 1) as PlayerId;
+    const entry = config.players[index];
+    const fallbackName =
+      mode === 'solo'
+        ? (GHOST_PLAYER_NAMES[index] ?? `Ghost ${id}`)
+        : (DEFAULT_PLAYER_NAMES[index] ?? `Player ${id}`);
+
+    players[id] = {
+      id,
+      name: entry?.name.trim() || fallbackName,
+      color: entry?.color ?? DEFAULT_PLAYER_COLORS[index] ?? DEFAULT_PLAYER_COLORS[0],
       position: START_TILE,
       activePower: null,
       lastMysteryTile: null,

@@ -25,6 +25,10 @@ export function GamePage() {
     return <Navigate to="/" replace />;
   }
 
+  if (status === 'setup') {
+    return <Navigate to="/setup" replace />;
+  }
+
   if (status === 'moodReveal') {
     return <BoardMoodReveal />;
   }

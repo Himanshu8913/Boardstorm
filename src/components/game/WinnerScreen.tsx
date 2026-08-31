@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useGameController } from '@/hooks/useGameController';
 import { useGameStore } from '@/hooks/useGameStore';
 import { Button } from '@/components/ui/Button';
@@ -36,6 +36,7 @@ function buildConfetti(): ConfettiPiece[] {
 }
 
 export function WinnerScreen() {
+  const navigate = useNavigate();
   const controller = useGameController();
   const isOpen = useGameStore((state) => state.ui.activeModal === 'victory');
   const winnerId = useGameStore((state) => state.match.winnerId);
@@ -96,7 +97,13 @@ export function WinnerScreen() {
         </p>
 
         <div className="winner-screen__actions">
-          <Button fullWidth onClick={() => controller.restart()}>
+          <Button
+            fullWidth
+            onClick={() => {
+              controller.replayMatch();
+              navigate('/game');
+            }}
+          >
             Play Again
           </Button>
           <Link to="/" className="w-full">

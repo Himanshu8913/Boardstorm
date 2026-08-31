@@ -4,6 +4,7 @@ import { RootLayout } from '@/layouts/RootLayout';
 import { GamePage } from '@/pages/GamePage';
 import { HomePage } from '@/pages/HomePage';
 import { ModeSelectPage } from '@/pages/ModeSelectPage';
+import { GameSetupPage } from '@/pages/GameSetupPage';
 import { SettingsPage } from '@/pages/SettingsPage';
 
 export function AppRouter() {
@@ -12,6 +13,7 @@ export function AppRouter() {
       <Route element={<RootLayout />}>
         <Route path="/" element={<HomePage />} />
         <Route path="/modes" element={<ModeSelectPage />} />
+        <Route path="/setup" element={<GameSetupPage />} />
         <Route path="/game" element={<GamePage />} />
         <Route path="/settings" element={<SettingsPage />} />
       </Route>

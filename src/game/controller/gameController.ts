@@ -1,9 +1,11 @@
 import { BOARD_MOODS, POWER_LABELS } from '@/constants/gameplay';
+import { createMatchId } from '@/utils/matchId';
 import type { BoardMood, GameMode } from '@/types/match';
+import type { MatchSetupConfig } from '@/types/setup';
 import type { DieType } from '@/types/dice';
 import type { PowerAction } from '@/types/power';
 import type { PlayerId } from '@/types/playerId';
-import type { PlayerState } from '@/types/player';
+import type { PlayerState, PlayersState } from '@/types/player';
 import type { GameStoreState } from '@/store/gameStore';
 import { useGameStore } from '@/store/gameStore';
 import { generateBoard, pickRandomBoardMood } from '@/game/engines/boardEngine';
@@ -14,7 +16,7 @@ import {
   getForwardMovementPath,
   isWinningPosition,
 } from '@/game/engines/playerEngine';
-import { createPlayersForMode } from '@/game/engines/playerSpawn';
+import { createPlayersForMode, createPlayersFromSetup } from '@/game/engines/playerSpawn';
 import {
   canActivatePower,
   createPowerMeta,
@@ -243,17 +245,39 @@ function resolveRollForPlayer(playerId: PlayerId): void {
   }
 }
 
+function initializeGameplay(mood: BoardMood, players: PlayersState) {
+  const store = getStore();
+  const playerIds = Object.keys(players).map(Number) as PlayerId[];
+  const tiles = generateBoard(mood);
+  const turn = createInitialTurnState(playerIds);
+
+  store.setBoard({ tiles, boardstormCount: 0 });
+  store.setPlayers(players);
+  store.setTurn(turn);
+  store.setDice({
+    selected: defaultDiceSelection(playerIds),
+    lastRoll: Object.fromEntries(playerIds.map((id) => [id, null])),
+    rollingPlayerId: null,
+  });
+  store.setMatch({ ...store.match, status: 'playing', boardMood: mood });
+  store.setUI({ ...store.ui, resolutionMessage: null, canEndTurn: false });
+
+  emit('match_started', {
+    matchId: store.match.id,
+    mode: store.match.mode,
+    boardMood: mood,
+  } satisfies MatchStartedPayload);
+}
+
 export const gameController = {
-  /** New match — mood reveal screen (board not generated yet). */
-  startMatch(mode: GameMode) {
+  /** After mode select — player setup screen. */
+  prepareMatch(mode: GameMode) {
     const store = getStore();
     store.resetMatch();
 
-    const matchId = crypto.randomUUID();
-
     store.setMatch({
-      id: matchId,
-      status: 'moodReveal',
+      id: createMatchId(),
+      status: 'setup',
       mode,
       boardMood: 'balanced',
       winnerId: null,
@@ -267,6 +291,18 @@ export const gameController = {
     });
   },
 
+  /** Save roster from setup screen, then proceed to board mood. */
+  confirmSetup(config: MatchSetupConfig) {
+    const store = getStore();
+    if (store.match.status !== 'setup') {
+      return;
+    }
+
+    const players = createPlayersFromSetup(store.match.mode, config);
+    store.setPlayers(players);
+    store.setMatch({ ...store.match, status: 'moodReveal' });
+  },
+
   /** After mood pick — generate board and begin play. */
   beginPlay(boardMood?: BoardMood) {
     const store = getStore();
@@ -275,40 +311,69 @@ export const gameController = {
     }
 
     const mood = boardMood ?? store.match.boardMood;
-    const players = createPlayersForMode(store.match.mode);
-    const playerIds = Object.keys(players).map(Number) as PlayerId[];
-    const tiles = generateBoard(mood);
+    const players =
+      Object.keys(store.players).length > 0
+        ? store.players
+        : createPlayersForMode(store.match.mode);
 
-    const turn = createInitialTurnState(playerIds);
-
-    store.setBoard({ tiles, boardstormCount: 0 });
-    store.setPlayers(players);
-    store.setTurn(turn);
-    store.setDice({
-      selected: defaultDiceSelection(playerIds),
-      lastRoll: Object.fromEntries(playerIds.map((id) => [id, null])),
-      rollingPlayerId: null,
-    });
-    store.setMatch({ ...store.match, status: 'playing', boardMood: mood });
-    store.setUI({ ...store.ui, resolutionMessage: null, canEndTurn: false });
-
-    emit('match_started', {
-      matchId: store.match.id,
-      mode: store.match.mode,
-      boardMood: store.match.boardMood,
-    } satisfies MatchStartedPayload);
+    initializeGameplay(mood, players);
   },
 
-  /** Solo vs ghosts with a random board mood — skips mode/mood screens. */
+  /** Solo vs ghosts with a random board mood — skips setup and mood screens. */
   quickMatch() {
+    const store = getStore();
     const mood = pickRandomBoardMood(BOARD_MOODS);
-    gameController.startMatch('solo');
-    gameController.beginPlay(mood);
+
+    store.resetMatch();
+    store.setMatch({
+      id: createMatchId(),
+      status: 'moodReveal',
+      mode: 'solo',
+      boardMood: mood,
+      winnerId: null,
+      createdAt: Date.now(),
+      finishedAt: null,
+    });
+    store.setAI({
+      enabled: true,
+      difficulty: 'normal',
+    });
+
+    initializeGameplay(mood, createPlayersForMode('solo'));
+  },
+
+  /** Play again — keep roster, pick a new board mood. */
+  replayMatch() {
+    const store = getStore();
+    const { mode } = store.match;
+    const players = { ...store.players };
+
+    store.resetMatch();
+    store.setMatch({
+      id: createMatchId(),
+      status: 'moodReveal',
+      mode,
+      boardMood: 'balanced',
+      winnerId: null,
+      createdAt: Date.now(),
+      finishedAt: null,
+    });
+    store.setAI({
+      enabled: mode === 'solo',
+      difficulty: 'normal',
+    });
+    store.setPlayers(players);
   },
 
   restart(mode?: GameMode) {
-    const currentMode = mode ?? getStore().match.mode;
-    gameController.startMatch(currentMode);
+    gameController.replayMatch();
+    if (mode) {
+      getStore().setMatch({ ...getStore().match, mode });
+      getStore().setAI({
+        enabled: mode === 'solo',
+        difficulty: 'normal',
+      });
+    }
   },
 
   selectDie(playerId: PlayerId, dieType: DieType) {

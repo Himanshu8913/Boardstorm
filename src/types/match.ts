@@ -4,6 +4,7 @@ export type GameMode = 'solo' | 'multiplayer';
 
 export type MatchStatus =
   | 'idle'
+  | 'setup'
   | 'moodReveal'
   | 'playing'
   | 'finished';
