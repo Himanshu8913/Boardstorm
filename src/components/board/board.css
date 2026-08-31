@@ -244,6 +244,7 @@
 .game-tile__tokens {
   position: absolute;
   inset: 0;
+  z-index: 5;
   pointer-events: none;
 }
 
