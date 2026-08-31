@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { GameBoard } from '@/components/board/GameBoard';
 import { PlayerDicePanel } from '@/components/dice/PlayerDicePanel';
 import { TurnHud } from '@/components/game/TurnHud';
+import { DEFAULT_BOARD_MOOD } from '@/types/boardMood';
 import { INITIAL_PLAYERS, type Player } from '@/types/player';
 import type { DieType } from '@/types/dice';
 import { BOARD_TILE_COUNT } from '@/utils/boardLayout';
@@ -11,6 +12,7 @@ import {
   animatePlayerToPosition,
   calculateTargetPosition,
 } from '@/utils/playerMovement';
+import { generateBoard } from '@/utils/tileGeneration';
 import {
   advanceTurn,
   createInitialTurnState,
@@ -30,6 +32,7 @@ const INITIAL_TURN_STATE = createInitialTurnState(
 );
 
 export function GamePage() {
+  const [boardTiles] = useState(() => generateBoard(DEFAULT_BOARD_MOOD));
   const [players, setPlayers] = useState<Player[]>(INITIAL_PLAYERS);
   const [turnState, setTurnState] = useState(INITIAL_TURN_STATE);
   const [selectedDice, setSelectedDice] =
@@ -121,7 +124,7 @@ export function GamePage() {
     <section className="flex flex-col items-center gap-6 py-4">
       <h1 className="text-2xl font-bold sm:text-3xl">Game Board</h1>
       <TurnHud round={turnState.round} currentPlayer={currentPlayer} />
-      <GameBoard players={players} />
+      <GameBoard players={players} tiles={boardTiles} />
       <div className="grid w-full max-w-3xl grid-cols-1 gap-3 sm:grid-cols-2">
         {players.map((player) => (
           <PlayerDicePanel

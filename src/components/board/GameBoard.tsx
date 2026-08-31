@@ -1,4 +1,5 @@
 import type { Player } from '@/types/player';
+import type { BoardTile } from '@/types/tile';
 import { BOARD_COLS, getBoardGrid } from '@/utils/boardLayout';
 import { Tile } from './Tile';
 
@@ -6,9 +7,12 @@ const grid = getBoardGrid();
 
 type GameBoardProps = {
   players: Player[];
+  tiles: BoardTile[];
 };
 
-export function GameBoard({ players }: GameBoardProps) {
+export function GameBoard({ players, tiles }: GameBoardProps) {
+  const tileMap = new Map(tiles.map((tile) => [tile.number, tile]));
+
   const playersByTile = players.reduce<Map<number, Player[]>>((map, player) => {
     const tilePlayers = map.get(player.position) ?? [];
     tilePlayers.push(player);
@@ -29,14 +33,21 @@ export function GameBoard({ players }: GameBoardProps) {
         aria-label="Game board, 100 tiles"
       >
         {grid.map((row) =>
-          row.map((tileNumber) => (
-            <Tile
-              key={tileNumber}
-              number={tileNumber}
-              isStart={tileNumber === 1}
-              players={playersByTile.get(tileNumber) ?? []}
-            />
-          )),
+          row.map((tileNumber) => {
+            const tile = tileMap.get(tileNumber);
+            if (!tile) {
+              return null;
+            }
+
+            return (
+              <Tile
+                key={tileNumber}
+                tile={tile}
+                isStart={tileNumber === 1}
+                players={playersByTile.get(tileNumber) ?? []}
+              />
+            );
+          }),
         )}
       </div>
     </div>
