@@ -1,4 +1,4 @@
-import { POWER_LABELS } from '@/constants/gameplay';
+import { BOARD_MOODS, POWER_LABELS } from '@/constants/gameplay';
 import type { BoardMood, GameMode } from '@/types/match';
 import type { DieType } from '@/types/dice';
 import type { PowerAction } from '@/types/power';
@@ -6,7 +6,7 @@ import type { PlayerId } from '@/types/playerId';
 import type { PlayerState } from '@/types/player';
 import type { GameStoreState } from '@/store/gameStore';
 import { useGameStore } from '@/store/gameStore';
-import { generateBoard } from '@/game/engines/boardEngine';
+import { generateBoard, pickRandomBoardMood } from '@/game/engines/boardEngine';
 import { applyBoardstorm } from '@/game/engines/boardstormEngine';
 import { resolveCollision } from '@/game/engines/collisionEngine';
 import { rollDie } from '@/game/engines/diceEngine';
@@ -297,6 +297,13 @@ export const gameController = {
       mode: store.match.mode,
       boardMood: store.match.boardMood,
     } satisfies MatchStartedPayload);
+  },
+
+  /** Solo vs ghosts with a random board mood — skips mode/mood screens. */
+  quickMatch() {
+    const mood = pickRandomBoardMood(BOARD_MOODS);
+    gameController.startMatch('solo');
+    gameController.beginPlay(mood);
   },
 
   restart(mode?: GameMode) {

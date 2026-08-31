@@ -1,9 +1,16 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
+import { useGameController } from '@/hooks/useGameController';
 import '@/styles/home-brand.css';
 
 export function HomePage() {
   const navigate = useNavigate();
+  const controller = useGameController();
+
+  const handleQuickMatch = () => {
+    controller.quickMatch();
+    navigate('/game');
+  };
 
   return (
     <section className="home-screen relative flex min-h-[calc(100vh-8rem)] flex-col items-center justify-center px-4 py-8 sm:px-6">
@@ -33,8 +40,8 @@ export function HomePage() {
             variant="secondary"
             size="lg"
             fullWidth
-            onClick={() => navigate('/modes')}
-            aria-label="Quick match — choose game mode"
+            onClick={handleQuickMatch}
+            aria-label="Quick match — solo vs ghosts with a random board mood"
           >
             Quick Match
           </Button>
