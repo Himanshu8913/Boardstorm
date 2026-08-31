@@ -41,7 +41,7 @@ export function PlayerToken({
     >
       <div
         className={cn(
-          'h-[clamp(10px,30%,22px)] w-[clamp(10px,30%,22px)] rounded-full border-2 border-white shadow-sm',
+          'h-[clamp(12px,32%,24px)] w-[clamp(12px,32%,24px)] rounded-full border-2 border-white shadow-md',
           player.isGhost && 'opacity-90',
           isHopping && 'anim-token-hop',
           isCurrentTurn && 'ring-2 ring-primary ring-offset-1',

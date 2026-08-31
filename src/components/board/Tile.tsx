@@ -1,13 +1,13 @@
-import { START_TILE } from '@/constants/board';
+import { START_TILE, WIN_TILE } from '@/constants/board';
+import { getSafeTileVariant } from '@/constants/boardThemes';
 import type { PlayerMotionEffect } from '@/types/animation';
 import type { PlayerState } from '@/types/player';
 import type { BoardTile, TileType } from '@/types/tile';
 import { PlayerToken } from '@/components/board/PlayerToken';
 import { TileIcon } from '@/components/board/TileIcon';
 import {
-  getDisplayTileType,
   getTileAriaLabel,
-  getTileSurfaceClass,
+  getTileDataType,
 } from '@/components/board/tileDisplay';
 import { cn } from '@/components/ui/cn';
 
@@ -39,9 +39,12 @@ export function Tile({
   columnIndex,
 }: TileProps) {
   const isStart = tileNumber === START_TILE;
-  const displayType = getDisplayTileType(tile, showType);
-  const showIcon = isStart || (showType && displayType !== 'safe');
-  const isActiveEffect = activeEffect !== null && activeEffect === displayType;
+  const isFinish = tileNumber === WIN_TILE;
+  const dataType = getTileDataType(tile, showType, isStart);
+  const showIcon = dataType !== 'safe';
+  const isActiveEffect = activeEffect !== null && activeEffect === dataType;
+  const safeVariant = getSafeTileVariant(tileNumber);
+
   const tileEffectClass =
     isActiveEffect && activeEffect === 'trap'
       ? 'anim-tile-trap'
@@ -57,25 +60,21 @@ export function Tile({
       aria-rowindex={rowIndex + 1}
       aria-colindex={columnIndex + 1}
       aria-label={getTileAriaLabel(tileNumber, tile, showType, players.length)}
+      data-type={dataType}
+      data-safe-variant={dataType === 'safe' ? safeVariant : undefined}
+      data-finish={isFinish || undefined}
       className={cn(
-        'relative aspect-square min-w-0 rounded-xs shadow-sm transition-shadow duration-fast sm:rounded-sm',
-        getTileSurfaceClass(tile, showType, isStart),
+        'game-tile',
         isMutating && 'tile-mutating',
         tileEffectClass,
-        isActiveEffect && 'shadow-md ring-2 ring-inset ring-white/60',
+        isActiveEffect && 'game-tile--active',
       )}
     >
-      <span className="absolute left-0.5 top-0.5 z-10 text-[clamp(0.625rem,2.2vw,0.875rem)] font-semibold leading-none opacity-80 sm:left-1 sm:top-1">
-        {tileNumber}
-      </span>
+      <span className="game-tile__number">{tileNumber}</span>
 
-      {showIcon && (
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center pt-2">
-          <TileIcon type={displayType} isStart={isStart} />
-        </div>
-      )}
+      {showIcon && <TileIcon type={dataType} />}
 
-      <div className="pointer-events-none absolute inset-0">
+      <div className="game-tile__tokens">
         {players.map((player, index) => (
           <PlayerToken
             key={player.id}

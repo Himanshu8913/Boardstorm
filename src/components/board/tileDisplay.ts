@@ -2,13 +2,6 @@ import { START_TILE } from '@/constants/board';
 import type { TileType } from '@/types/tile';
 import type { BoardTile } from '@/types/tile';
 
-const tileSurfaceClasses: Record<TileType, string> = {
-  safe: 'bg-tile-safe text-tile-safe-text',
-  trap: 'bg-tile-trap text-tile-trap-text',
-  boost: 'bg-tile-boost text-tile-boost-text',
-  mystery: 'bg-tile-mystery text-tile-mystery-text',
-};
-
 export function getDisplayTileType(
   tile: BoardTile | undefined,
   showType: boolean,
@@ -20,17 +13,16 @@ export function getDisplayTileType(
   return tile.type;
 }
 
-export function getTileSurfaceClass(
+export function getTileDataType(
   tile: BoardTile | undefined,
   showType: boolean,
   isStart: boolean,
-): string {
+): TileType | 'start' {
   if (isStart) {
-    return 'bg-tile-start text-tile-safe-text ring-2 ring-tile-start-ring ring-inset';
+    return 'start';
   }
 
-  const displayType = getDisplayTileType(tile, showType);
-  return tileSurfaceClasses[displayType];
+  return getDisplayTileType(tile, showType);
 }
 
 export function getTileAriaLabel(
@@ -47,9 +39,9 @@ export function getTileAriaLabel(
 
   if (showType && tile && tile.type !== 'safe') {
     const typeLabels: Record<string, string> = {
-      trap: 'trap, warning icon',
-      boost: 'boost, star icon',
-      mystery: 'mystery, sparkle icon',
+      trap: 'trap, skull icon',
+      boost: 'boost, sun icon',
+      mystery: 'mystery, question icon',
     };
     parts.push(typeLabels[tile.type] ?? tile.type);
   }
