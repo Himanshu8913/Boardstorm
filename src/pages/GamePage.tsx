@@ -23,6 +23,11 @@ import {
   animatePlayerToPosition,
   calculateTargetPosition,
 } from '@/utils/playerMovement';
+import {
+  appendMessage,
+  formatCollisionMessage,
+  getCollisionBumps,
+} from '@/utils/playerCollision';
 import { generateBoard } from '@/utils/tileGeneration';
 import {
   applyBoardstorm,
@@ -105,8 +110,35 @@ export function GamePage() {
   }, []);
 
   /**
+   * Bumps any opponents on the landing tile back 2 spaces with animation.
+   *
+   * @returns Collision message if any opponents were bumped
+   */
+  const resolveLandingCollisions = useCallback(
+    async (
+      landingPlayerId: number,
+      landingTile: number,
+    ): Promise<string | null> => {
+      const bumps = getCollisionBumps(landingPlayerId, landingTile, players);
+
+      for (const bump of bumps) {
+        if (bump.to !== bump.from) {
+          await animatePlayerToPosition(bump.from, bump.to, (position) =>
+            updatePlayerPosition(bump.playerId, position),
+          );
+        }
+      }
+
+      return formatCollisionMessage(bumps);
+    },
+    [players, updatePlayerPosition],
+  );
+
+  /**
    * Applies tile resolution side-effects (power grant, mystery tracking)
    * and animates any resulting position change.
+   *
+   * @returns The player's final tile after resolution movement
    */
   const applyTileResolution = useCallback(
     async (
@@ -114,15 +146,15 @@ export function GamePage() {
       landingPosition: number,
       board: BoardTile[],
       shieldDisabled: boolean,
-    ) => {
+    ): Promise<number> => {
       const player = players.find((entry) => entry.id === playerId);
       if (!player) {
-        return;
+        return landingPosition;
       }
 
       const landedTile = board.find((tile) => tile.number === landingPosition);
       if (!landedTile) {
-        return;
+        return landingPosition;
       }
 
       const resolution = resolveTileLanding({
@@ -165,6 +197,8 @@ export function GamePage() {
           (position) => updatePlayerPosition(playerId, position),
         );
       }
+
+      return resolution.finalPosition;
     },
     [boardMood, players, updatePlayerPosition],
   );
@@ -211,17 +245,39 @@ export function GamePage() {
         );
       }
 
-      await applyTileResolution(
+      let statusMessage: string | null = null;
+      statusMessage = appendMessage(
+        statusMessage,
+        await resolveLandingCollisions(playerId, landingPosition),
+      );
+
+      const finalPosition = await applyTileResolution(
         playerId,
         landingPosition,
         boardTiles,
         shieldDisabled,
       );
 
+      statusMessage = appendMessage(
+        statusMessage,
+        await resolveLandingCollisions(playerId, finalPosition),
+      );
+
+      if (statusMessage) {
+        setResolutionMessage((current) => appendMessage(current, statusMessage));
+      }
+
       setActivePlayerId(null);
       setCanEndTurn(true);
     },
-    [applyTileResolution, boardTiles, players, selectedDice, updatePlayerPosition],
+    [
+      applyTileResolution,
+      boardTiles,
+      players,
+      resolveLandingCollisions,
+      selectedDice,
+      updatePlayerPosition,
+    ],
   );
 
   const handleRoll = useCallback(
@@ -282,12 +338,29 @@ export function GamePage() {
           );
         }
 
-        await applyTileResolution(
+        let collisionMessage = await resolveLandingCollisions(
+          playerId,
+          action.targetTile,
+        );
+        setResolutionMessage((current) =>
+          appendMessage(current, collisionMessage),
+        );
+
+        const finalPosition = await applyTileResolution(
           playerId,
           action.targetTile,
           boardTiles,
           false,
         );
+
+        collisionMessage = await resolveLandingCollisions(
+          playerId,
+          finalPosition,
+        );
+        setResolutionMessage((current) =>
+          appendMessage(current, collisionMessage),
+        );
+
         setActivePlayerId(null);
         return;
       }
@@ -315,6 +388,14 @@ export function GamePage() {
           );
         }
 
+        const collisionMessage = await resolveLandingCollisions(
+          target.id,
+          newPosition,
+        );
+        setResolutionMessage((current) =>
+          appendMessage(current, collisionMessage),
+        );
+
         setActivePlayerId(null);
       }
     },
@@ -326,6 +407,7 @@ export function GamePage() {
       isBusy,
       performRoll,
       players,
+      resolveLandingCollisions,
       turnState,
       updatePlayerPosition,
     ],
