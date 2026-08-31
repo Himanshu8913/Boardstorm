@@ -46,7 +46,12 @@ export function getTileAriaLabel(
   }
 
   if (showType && tile && tile.type !== 'safe') {
-    parts.push(tile.type);
+    const typeLabels: Record<string, string> = {
+      trap: 'trap, warning icon',
+      boost: 'boost, star icon',
+      mystery: 'mystery, sparkle icon',
+    };
+    parts.push(typeLabels[tile.type] ?? tile.type);
   }
 
   if (playerCount > 0) {

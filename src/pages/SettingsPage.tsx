@@ -40,7 +40,7 @@ function Toggle({ checked, onChange, label }: ToggleProps) {
       aria-label={label}
       onClick={() => onChange(!checked)}
       className={cn(
-        'relative h-11 w-[3.25rem] rounded-full transition-colors duration-fast',
+        'relative h-11 w-[3.25rem] rounded-full transition-colors duration-fast focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary',
         checked ? 'bg-primary' : 'bg-border-strong',
       )}
     >
@@ -81,7 +81,7 @@ function VolumeSlider({
         disabled={disabled}
         aria-label={label}
         onChange={(event) => onChange(Number(event.target.value))}
-            className="h-3 w-full min-h-[44px] cursor-pointer accent-primary disabled:cursor-not-allowed disabled:opacity-50"
+            className="focus-ring h-3 w-full min-h-[44px] cursor-pointer accent-primary disabled:cursor-not-allowed disabled:opacity-50"
       />
       <span className="w-10 text-right text-xs font-semibold tabular-nums text-ink-muted">
         {value}%
@@ -160,7 +160,7 @@ export function SettingsPage() {
                       patchSettings({ animationSpeed: option.value })
                     }
                     className={cn(
-                      'rounded-md px-3 py-2 text-xs font-semibold transition-colors duration-fast',
+                      'focus-ring rounded-md px-3 py-2 text-xs font-semibold transition-colors duration-fast',
                       selected
                         ? 'bg-primary text-ink-inverse shadow-sm'
                         : 'text-ink-muted hover:text-ink',

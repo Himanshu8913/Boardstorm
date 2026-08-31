@@ -1,3 +1,4 @@
+import type { KeyboardEvent } from 'react';
 import type { DieType } from '@/types/dice';
 import { cn } from '@/components/ui/cn';
 
@@ -63,6 +64,25 @@ export function DiceSelector({
   onSelect,
   disabled = false,
 }: DiceSelectorProps) {
+  const handleKeyDown = (
+    event: KeyboardEvent<HTMLButtonElement>,
+    type: DieType,
+  ) => {
+    if (disabled) {
+      return;
+    }
+
+    if (
+      event.key === 'ArrowLeft' ||
+      event.key === 'ArrowUp' ||
+      event.key === 'ArrowRight' ||
+      event.key === 'ArrowDown'
+    ) {
+      event.preventDefault();
+      onSelect(type === 'safe' ? 'risk' : 'safe');
+    }
+  };
+
   return (
     <div
       className="grid grid-cols-2 gap-3"
@@ -78,7 +98,9 @@ export function DiceSelector({
             type="button"
             disabled={disabled}
             aria-pressed={isSelected}
+            aria-label={`${label} die, rolls ${range}`}
             onClick={() => onSelect(type)}
+            onKeyDown={(event) => handleKeyDown(event, type)}
             className={cn(
               'flex min-h-[44px] flex-col items-center justify-center gap-1 rounded-lg border-2 border-border bg-surface px-3 py-3 text-sm font-semibold transition-all duration-fast',
               'hover:scale-[1.02] active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary',

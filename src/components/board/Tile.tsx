@@ -80,6 +80,7 @@ export function Tile({
           <PlayerToken
             key={player.id}
             player={player}
+            tileNumber={tileNumber}
             stackIndex={index}
             stackTotal={players.length}
             motion={playerMotions[player.id] ?? null}

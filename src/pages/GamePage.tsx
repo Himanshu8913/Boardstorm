@@ -8,6 +8,7 @@ import {
   PlayerList,
   TileResolutionBanner,
   TurnHud,
+  TurnAnnouncer,
   WinnerScreen,
   useGhostTurn,
 } from '@/components/game';
@@ -30,6 +31,7 @@ export function GamePage() {
 
   return (
     <section className="game-screen flex flex-col gap-3 pb-[min(58vh,30rem)] sm:gap-4 lg:pb-8">
+      <TurnAnnouncer />
       <TurnHud />
       <TileResolutionBanner />
 

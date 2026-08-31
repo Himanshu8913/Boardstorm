@@ -34,7 +34,11 @@ export function PowerUsePanel({ playerId, disabled = false }: PowerUsePanelProps
   };
 
   return (
-    <div className="rounded-lg border border-mystery/30 bg-mystery/5 p-3">
+    <div
+      className="rounded-lg border border-mystery/30 bg-mystery/5 p-3"
+      role="group"
+      aria-label={`Active power: ${label}`}
+    >
       <div className="flex items-center justify-between gap-2">
         <span className="text-xs font-semibold uppercase tracking-wide text-ink-muted">
           Active power
@@ -85,7 +89,7 @@ export function PowerUsePanel({ playerId, disabled = false }: PowerUsePanelProps
             value={teleportTarget}
             disabled={disabled}
             onChange={(event) => setTeleportTarget(Number(event.target.value))}
-            className="rounded-lg border border-border bg-surface px-3 py-2 text-sm"
+            className="focus-ring rounded-lg border border-border bg-surface px-3 py-2 text-sm"
           />
           <Button
             fullWidth
@@ -101,7 +105,7 @@ export function PowerUsePanel({ playerId, disabled = false }: PowerUsePanelProps
       )}
 
       {power === 'sabotage' && (
-        <div className="mt-3 flex flex-col gap-2">
+        <div className="mt-3 flex flex-col gap-2" role="group" aria-label="Sabotage target">
           <span className="text-xs text-ink-muted">Choose opponent</span>
           {Object.values(players)
             .filter((opponent) => opponent.id !== playerId)

@@ -5,6 +5,7 @@ import { getStackOffset } from '@/components/board/playerTokenLayout';
 
 export type PlayerTokenProps = {
   player: PlayerState;
+  tileNumber: number;
   stackIndex: number;
   stackTotal: number;
   motion?: PlayerMotionEffect | null;
@@ -20,6 +21,7 @@ const motionClasses: Record<PlayerMotionEffect, string> = {
 
 export function PlayerToken({
   player,
+  tileNumber,
   stackIndex,
   stackTotal,
   motion = null,
@@ -35,7 +37,7 @@ export function PlayerToken({
         transform: `translate(calc(-50% + ${offset.x}px), calc(-50% + ${offset.y}px))`,
       }}
       title={player.name}
-      aria-label={player.name}
+      aria-label={`${player.name}, on tile ${tileNumber}${player.isGhost ? ', ghost' : ''}`}
     >
       <div
         className={cn(

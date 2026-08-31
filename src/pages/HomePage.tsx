@@ -57,6 +57,7 @@ export function HomePage() {
             type="button"
             onClick={() => startMode('solo')}
             className="home-mode-card group text-left"
+            aria-label="Start solo game versus ghost opponents"
           >
             <Card
               padding="md"
@@ -77,6 +78,7 @@ export function HomePage() {
             type="button"
             onClick={() => startMode('multiplayer')}
             className="home-mode-card group text-left"
+            aria-label="Start local multiplayer game for two to four players"
           >
             <Card
               padding="md"
@@ -96,7 +98,7 @@ export function HomePage() {
 
         <Link
           to="/settings"
-          className="mt-8 text-sm font-medium text-ink-muted transition-colors duration-fast hover:text-primary"
+          className="focus-ring mt-8 rounded-lg text-sm font-medium text-ink-muted transition-colors duration-fast hover:text-primary"
         >
           Settings
         </Link>

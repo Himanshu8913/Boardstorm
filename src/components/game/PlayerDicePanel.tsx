@@ -1,3 +1,5 @@
+import { useRef } from 'react';
+import { useTurnFocus } from '@/hooks/useTurnFocus';
 import { useGameController } from '@/hooks/useGameController';
 import { useGameStore } from '@/hooks/useGameStore';
 import { getCurrentPlayerId } from '@/store/selectors';
@@ -23,12 +25,15 @@ function PlayerTurnPanel({
     getCurrentPlayerId(state.turn),
   );
   const matchStatus = useGameStore((state) => state.match.status);
+  const rollButtonRef = useRef<HTMLButtonElement>(null);
+  const isCurrent = currentPlayerId === playerId;
+
+  useTurnFocus(rollButtonRef, isCurrent && expanded && Boolean(player));
 
   if (!player) {
     return null;
   }
 
-  const isCurrent = currentPlayerId === playerId;
   const canInteract =
     isCurrent &&
     !player.isGhost &&
@@ -65,7 +70,11 @@ function PlayerTurnPanel({
       </div>
 
       {expanded && (
-        <div className="mt-4 flex flex-col gap-4">
+        <div
+          className="mt-4 flex flex-col gap-4"
+          role="group"
+          aria-label={`${player.name} dice and turn actions`}
+        >
           <DiceSelector
             selected={selectedDie}
             disabled={!canInteract || canEndTurn}
@@ -81,6 +90,8 @@ function PlayerTurnPanel({
 
           <div className="grid grid-cols-2 gap-3">
             <Button
+              ref={rollButtonRef}
+              aria-label={`Roll ${selectedDie} die`}
               disabled={!canInteract || canEndTurn}
               onClick={() => controller.roll(playerId)}
             >
@@ -88,6 +99,7 @@ function PlayerTurnPanel({
             </Button>
             <Button
               variant="secondary"
+              aria-label="End turn"
               disabled={!canInteract || !canEndTurn}
               onClick={() => controller.endTurn(playerId)}
             >
