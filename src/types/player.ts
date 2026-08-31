@@ -1,3 +1,4 @@
+import type { GameMode } from '@/types/gameMode';
 import type { MysteryPower } from '@/types/power';
 
 export type Player = {
@@ -5,6 +6,8 @@ export type Player = {
   name: string;
   position: number;
   color: string;
+  /** AI-controlled opponent in solo mode. */
+  isGhost: boolean;
   /** One stored mystery power; replaced when landing on a new Mystery tile. */
   activePower: MysteryPower | null;
   /** Last Mystery tile visited; used by the Collapse trap effect. */
@@ -20,14 +23,27 @@ export const PLAYER_COLORS = [
   '#a855f7',
 ] as const;
 
-export const INITIAL_PLAYERS: Player[] = Array.from(
-  { length: MAX_PLAYERS },
-  (_, index) => ({
-    id: index + 1,
-    name: `Player ${index + 1}`,
-    position: 1,
-    color: PLAYER_COLORS[index],
-    activePower: null,
-    lastMysteryTile: null,
-  }),
-);
+/**
+ * Creates the player roster for the selected game mode.
+ * Solo mode: Player 1 is human, players 2–4 are ghosts.
+ *
+ * @param mode - Solo vs local multiplayer
+ */
+export function createPlayers(mode: GameMode): Player[] {
+  return Array.from({ length: MAX_PLAYERS }, (_, index) => {
+    const id = index + 1;
+    const isGhost = mode === 'solo' && index > 0;
+
+    return {
+      id,
+      name: isGhost ? `Ghost ${id}` : `Player ${id}`,
+      position: 1,
+      color: PLAYER_COLORS[index],
+      isGhost,
+      activePower: null,
+      lastMysteryTile: null,
+    };
+  });
+}
+
+export const INITIAL_PLAYERS = createPlayers('multiplayer');

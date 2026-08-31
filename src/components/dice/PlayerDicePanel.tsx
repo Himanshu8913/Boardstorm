@@ -35,13 +35,16 @@ export function PlayerDicePanel({
   onEndTurn,
   onUsePower,
 }: PlayerDicePanelProps) {
-  const panelDisabled = isDisabled || !isCurrentTurn;
+  const isGhost = player.isGhost;
+  const panelDisabled = isDisabled || !isCurrentTurn || isGhost;
 
   return (
     <div
       className={`flex flex-col gap-2 rounded-lg border p-3 transition-colors ${
         isCurrentTurn
-          ? 'border-boardstorm-accent bg-boardstorm-surface ring-1 ring-boardstorm-accent/40'
+          ? isGhost
+            ? 'border-slate-500 bg-boardstorm-surface ring-1 ring-slate-500/40'
+            : 'border-boardstorm-accent bg-boardstorm-surface ring-1 ring-boardstorm-accent/40'
           : 'border-slate-700 bg-boardstorm-surface/60 opacity-70'
       }`}
     >
@@ -52,49 +55,63 @@ export function PlayerDicePanel({
             style={{ backgroundColor: player.color }}
           />
           {player.name} — Tile {player.position}
-          {isCurrentTurn && (
+          {isGhost && (
+            <span className="rounded bg-slate-700 px-1.5 py-0.5 text-xs text-slate-300">
+              Ghost
+            </span>
+          )}
+          {isCurrentTurn && !isGhost && (
             <span className="rounded bg-boardstorm-accent/20 px-1.5 py-0.5 text-xs text-amber-300">
               Your turn
+            </span>
+          )}
+          {isCurrentTurn && isGhost && (
+            <span className="rounded bg-slate-700/80 px-1.5 py-0.5 text-xs text-slate-300">
+              {isRolling ? 'Rolling…' : 'Playing'}
             </span>
           )}
         </span>
         <DiceDisplay value={displayValue} isRolling={isRolling} />
       </div>
 
-      <DiceSelector
-        selected={selectedDie}
-        onSelect={onSelectDie}
-        disabled={panelDisabled}
-      />
+      {!isGhost && (
+        <>
+          <DiceSelector
+            selected={selectedDie}
+            onSelect={onSelectDie}
+            disabled={panelDisabled}
+          />
 
-      <button
-        type="button"
-        disabled={panelDisabled}
-        onClick={onRoll}
-        className="rounded-md bg-boardstorm-accent px-3 py-2 text-sm font-semibold text-boardstorm-bg hover:opacity-90 disabled:opacity-50"
-      >
-        {isRolling ? 'Rolling…' : 'Roll'}
-      </button>
+          <button
+            type="button"
+            disabled={panelDisabled}
+            onClick={onRoll}
+            className="rounded-md bg-boardstorm-accent px-3 py-2 text-sm font-semibold text-boardstorm-bg hover:opacity-90 disabled:opacity-50"
+          >
+            {isRolling ? 'Rolling…' : 'Roll'}
+          </button>
 
-      {isCurrentTurn && (
-        <button
-          type="button"
-          disabled={!canEndTurn || isDisabled}
-          onClick={onEndTurn}
-          className="rounded-md border border-slate-600 px-3 py-2 text-sm font-medium text-white hover:bg-slate-700 disabled:opacity-50"
-        >
-          End Turn
-        </button>
+          {isCurrentTurn && (
+            <button
+              type="button"
+              disabled={!canEndTurn || isDisabled}
+              onClick={onEndTurn}
+              className="rounded-md border border-slate-600 px-3 py-2 text-sm font-medium text-white hover:bg-slate-700 disabled:opacity-50"
+            >
+              End Turn
+            </button>
+          )}
+
+          <PowerUsePanel
+            player={player}
+            allPlayers={allPlayers}
+            isCurrentTurn={isCurrentTurn}
+            canUsePower={!isDisabled}
+            hasRolled={canEndTurn}
+            onUsePower={onUsePower}
+          />
+        </>
       )}
-
-      <PowerUsePanel
-        player={player}
-        allPlayers={allPlayers}
-        isCurrentTurn={isCurrentTurn}
-        canUsePower={!isDisabled}
-        hasRolled={canEndTurn}
-        onUsePower={onUsePower}
-      />
 
       {lastRoll !== null && !isRolling && (
         <p className="text-xs text-boardstorm-muted">

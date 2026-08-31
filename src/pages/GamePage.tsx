@@ -1,4 +1,5 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { GameBoard } from '@/components/board/GameBoard';
 import { PlayerDicePanel } from '@/components/dice/PlayerDicePanel';
 import { BoardMoodReveal } from '@/components/game/BoardMoodReveal';
@@ -8,7 +9,8 @@ import { TileResolutionBanner } from '@/components/game/TileResolutionBanner';
 import { TurnHud } from '@/components/game/TurnHud';
 import { WinnerScreen } from '@/components/game/WinnerScreen';
 import type { BoardMood } from '@/types/boardMood';
-import { INITIAL_PLAYERS, type Player } from '@/types/player';
+import type { GameMode } from '@/types/gameMode';
+import { createPlayers, INITIAL_PLAYERS, type Player } from '@/types/player';
 import type { BoardTile } from '@/types/tile';
 import type { DieType } from '@/types/dice';
 import { pickRandomBoardMood } from '@/utils/boardMood';
@@ -40,6 +42,11 @@ import {
 } from '@/utils/boardstorm';
 import { resolveTileLanding } from '@/utils/tileResolution';
 import {
+  GHOST_END_TURN_DELAY_MS,
+  GHOST_TURN_DELAY_MS,
+  pickGhostDie,
+} from '@/utils/ghostAI';
+import {
   advanceTurn,
   createInitialTurnState,
   getCurrentPlayerId,
@@ -60,12 +67,16 @@ const INITIAL_TURN_STATE = createInitialTurnState(
 );
 
 export function GamePage() {
+  const location = useLocation();
+  const [gameMode] = useState<GameMode>(
+    () => (location.state as { mode?: GameMode })?.mode ?? 'multiplayer',
+  );
   const [gamePhase, setGamePhase] = useState<GamePhase>('mood-reveal');
   const [boardMood, setBoardMood] = useState<BoardMood>(() =>
     pickRandomBoardMood(),
   );
   const [boardTiles, setBoardTiles] = useState<BoardTile[] | null>(null);
-  const [players, setPlayers] = useState<Player[]>(INITIAL_PLAYERS);
+  const [players, setPlayers] = useState<Player[]>(() => createPlayers(gameMode));
   const [turnState, setTurnState] = useState(INITIAL_TURN_STATE);
   const [winner, setWinner] = useState<Player | null>(null);
   const [selectedDice, setSelectedDice] =
@@ -102,7 +113,7 @@ export function GamePage() {
   const handleRestart = useCallback(() => {
     setBoardMood(pickRandomBoardMood());
     setBoardTiles(null);
-    setPlayers(INITIAL_PLAYERS.map((player) => ({ ...player })));
+    setPlayers(createPlayers(gameMode).map((player) => ({ ...player })));
     setTurnState(INITIAL_TURN_STATE);
     setSelectedDice(DEFAULT_DICE);
     setDisplayValues({});
@@ -114,7 +125,7 @@ export function GamePage() {
     setMutatingTiles([]);
     setWinner(null);
     setGamePhase('mood-reveal');
-  }, []);
+  }, [gameMode]);
 
   /**
    * Declares a winner if the player reached tile 100.
@@ -253,16 +264,18 @@ export function GamePage() {
 
   /**
    * Executes a full dice roll: animation, movement, and tile resolution.
+   *
+   * @returns True if the roll ended the game with a winner
    */
   const performRoll = useCallback(
-    async (playerId: number) => {
+    async (playerId: number): Promise<boolean> => {
       if (!boardTiles) {
-        return;
+        return false;
       }
 
       const player = players.find((entry) => entry.id === playerId);
       if (!player) {
-        return;
+        return false;
       }
 
       const dieType = selectedDice[playerId] ?? 'safe';
@@ -329,10 +342,11 @@ export function GamePage() {
       setActivePlayerId(null);
 
       if (declareWinnerIfNeeded(playerId, finalPosition)) {
-        return;
+        return true;
       }
 
       setCanEndTurn(true);
+      return false;
     },
     [
       applyTileResolution,
@@ -530,6 +544,61 @@ export function GamePage() {
     }
   }, [canEndTurn, isBusy, isGameOver, runBoardstorm, turnState]);
 
+  const performRollRef = useRef(performRoll);
+  const handleEndTurnRef = useRef(handleEndTurn);
+  performRollRef.current = performRoll;
+  handleEndTurnRef.current = handleEndTurn;
+
+  /**
+   * Automatically plays ghost turns in solo mode.
+   */
+  useEffect(() => {
+    if (gamePhase !== 'playing' || isGameOver || !boardTiles) {
+      return;
+    }
+
+    const current = players.find((player) => player.id === currentPlayerId);
+    if (!current?.isGhost) {
+      return;
+    }
+
+    const ghostId = current.id;
+    let cancelled = false;
+
+    const runGhostTurn = async () => {
+      await boardstormDelay(GHOST_TURN_DELAY_MS);
+      if (cancelled) {
+        return;
+      }
+
+      const dieType = pickGhostDie();
+      setSelectedDice((currentDice) => ({
+        ...currentDice,
+        [ghostId]: dieType,
+      }));
+
+      const won = await performRollRef.current(ghostId);
+      if (cancelled || won) {
+        return;
+      }
+
+      await boardstormDelay(GHOST_END_TURN_DELAY_MS);
+      if (cancelled) {
+        return;
+      }
+
+      await handleEndTurnRef.current();
+    };
+
+    void runGhostTurn();
+
+    return () => {
+      cancelled = true;
+    };
+    // Only re-run when the active player changes — not on every board update.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPlayerId, gamePhase, isGameOver, boardTiles]);
+
   if (gamePhase === 'mood-reveal') {
     return <BoardMoodReveal mood={boardMood} onStart={handleStartGame} />;
   }
@@ -540,7 +609,9 @@ export function GamePage() {
 
   return (
     <section className="flex flex-col items-center gap-6 py-4">
-      <h1 className="text-2xl font-bold sm:text-3xl">Game Board</h1>
+      <h1 className="text-2xl font-bold sm:text-3xl">
+        {gameMode === 'solo' ? 'Solo Game' : 'Game Board'}
+      </h1>
       <TurnHud
         round={turnState.round}
         currentPlayer={currentPlayer}
