@@ -8,6 +8,8 @@ import {
   createGameplayResetState,
   createInitialState,
 } from '@/store/createInitialState';
+import { savePersistedSettings } from '@/services/settingsPersistence';
+import type { SettingsState } from '@/types/settings';
 
 type SliceKey = keyof GameStore;
 
@@ -36,6 +38,7 @@ type GameStoreActions = {
   setUI: (ui: GameStore['ui']) => void;
   setAnimation: (animation: GameStore['animation']) => void;
   setSettings: (settings: GameStore['settings']) => void;
+  patchSettings: (patch: Partial<SettingsState>) => void;
   setAI: (ai: GameStore['ai']) => void;
 
   /** Resets gameplay slices; preserves settings. */
@@ -84,7 +87,16 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     }),
   setUI: (ui) => set({ ui }),
   setAnimation: (animation) => set({ animation }),
-  setSettings: (settings) => set({ settings }),
+  setSettings: (settings) => {
+    set({ settings });
+    savePersistedSettings(settings);
+  },
+  patchSettings: (patch) =>
+    set((state) => {
+      const settings = { ...state.settings, ...patch };
+      savePersistedSettings(settings);
+      return { settings };
+    }),
   setAI: (ai) => set({ ai }),
 
   resetMatch: () => {

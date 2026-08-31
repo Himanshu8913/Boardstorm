@@ -7,6 +7,8 @@ export interface SettingsState {
   animationSpeed: AnimationSpeed;
   soundEnabled: boolean;
   musicEnabled: boolean;
+  sfxVolume: number;
+  musicVolume: number;
   turnTimerEnabled: boolean;
   turnTimerSeconds: number;
 }

@@ -1,4 +1,4 @@
-import { DEFAULT_TURN_TIMER_SECONDS } from '@/constants/settings';
+import { DEFAULT_TURN_TIMER_SECONDS, DEFAULT_MUSIC_VOLUME, DEFAULT_SFX_VOLUME } from '@/constants/settings';
 import type { AIState } from '@/types/ai';
 import type { AnimationState } from '@/types/animation';
 import type { DiceState } from '@/types/dice';
@@ -70,6 +70,8 @@ export const defaultSettingsState = (): SettingsState => ({
   animationSpeed: 'normal',
   soundEnabled: true,
   musicEnabled: true,
+  sfxVolume: DEFAULT_SFX_VOLUME,
+  musicVolume: DEFAULT_MUSIC_VOLUME,
   turnTimerEnabled: false,
   turnTimerSeconds: DEFAULT_TURN_TIMER_SECONDS,
 });
