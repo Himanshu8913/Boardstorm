@@ -1,3 +1,4 @@
+import '@/styles/home-brand.css';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
@@ -9,7 +10,8 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
 
 export function RootLayout() {
   const location = useLocation();
-  const isHome = location.pathname === '/';
+  const isFullBleed =
+    location.pathname === '/' || location.pathname === '/modes';
 
   return (
     <div className="page-gradient flex min-h-screen flex-col overflow-x-hidden">
@@ -20,7 +22,7 @@ export function RootLayout() {
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-3 py-3 sm:px-4 sm:py-4">
           <NavLink
             to="/"
-            className="home-screen__logo-nav text-lg font-bold tracking-wider sm:text-xl"
+            className="brand-logo brand-logo--nav text-lg font-bold sm:text-xl"
           >
             BOARDSTORM
           </NavLink>
@@ -31,8 +33,8 @@ export function RootLayout() {
             <NavLink to="/" end className={navLinkClass}>
               Home
             </NavLink>
-            <NavLink to="/game" className={navLinkClass}>
-              Game
+            <NavLink to="/modes" className={navLinkClass}>
+              Play
             </NavLink>
             <NavLink to="/settings" className={navLinkClass}>
               <span className="hidden sm:inline">Settings</span>
@@ -46,25 +48,11 @@ export function RootLayout() {
       <main
         id="main-content"
         className={`mx-auto w-full max-w-7xl flex-1 ${
-          isHome ? 'px-0 py-0' : 'px-3 py-6 sm:px-4 sm:py-8'
+          isFullBleed ? 'px-0 py-0' : 'px-3 py-6 sm:px-4 sm:py-8'
         }`}
       >
         <Outlet />
       </main>
-
-      <style>{`
-        .home-screen__logo-nav {
-          background: linear-gradient(
-            180deg,
-            #fde68a 0%,
-            #f97316 60%,
-            #ea580c 100%
-          );
-          -webkit-background-clip: text;
-          background-clip: text;
-          color: transparent;
-        }
-      `}</style>
     </div>
   );
 }

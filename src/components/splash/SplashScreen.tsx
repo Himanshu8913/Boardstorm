@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react';
+import '@/styles/home-brand.css';
 import { SPLASH_LOADING_LABEL, SPLASH_ORBIT_ICONS, SPLASH_TAGLINE } from '@/constants/splash';
 import './splash-screen.css';
 
@@ -51,7 +52,7 @@ export function SplashScreen({
           </div>
         </div>
 
-        <h1 id="splash-logo" className="splash-screen__logo">
+        <h1 id="splash-logo" className="brand-logo splash-screen__logo">
           BOARDSTORM
         </h1>
 

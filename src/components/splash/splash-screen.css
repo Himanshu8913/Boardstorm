@@ -153,18 +153,6 @@
 
 .splash-screen__logo {
   font-size: clamp(2rem, 7vw, 3rem);
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  background: linear-gradient(
-    180deg,
-    #fde68a 0%,
-    #f97316 50%,
-    #ea580c 100%
-  );
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  filter: drop-shadow(0 4px 16px rgb(249 115 22 / 0.4));
 }
 
 .splash-screen__tagline {

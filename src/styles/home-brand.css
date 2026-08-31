@@ -1,0 +1,21 @@
+.brand-logo {
+  font-size: clamp(2.5rem, 8vw, 3.75rem);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  background: linear-gradient(
+    180deg,
+    #fde68a 0%,
+    #f97316 50%,
+    #ea580c 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 4px 12px rgb(249 115 22 / 0.35));
+}
+
+.brand-logo--nav {
+  font-size: inherit;
+  letter-spacing: 0.08em;
+  filter: drop-shadow(0 2px 8px rgb(249 115 22 / 0.25));
+}
