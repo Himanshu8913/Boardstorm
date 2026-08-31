@@ -1,5 +1,6 @@
 import type { Player } from '@/types/player';
 import type { DieType } from '@/types/dice';
+import { POWER_LABELS } from '@/types/power';
 import { DiceDisplay } from './DiceDisplay';
 import { DiceSelector } from './DiceSelector';
 
@@ -80,6 +81,12 @@ export function PlayerDicePanel({
         >
           End Turn
         </button>
+      )}
+
+      {player.activePower && (
+        <p className="text-xs text-purple-300">
+          Power: {POWER_LABELS[player.activePower]}
+        </p>
       )}
 
       {lastRoll !== null && !isRolling && (
