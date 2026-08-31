@@ -7,3 +7,53 @@
     @apply min-h-screen bg-boardstorm-bg text-white antialiased;
   }
 }
+
+@layer utilities {
+  @keyframes boardstorm-shake {
+    0%,
+    100% {
+      transform: scale(1.05) rotate(0deg);
+    }
+    25% {
+      transform: scale(1.08) rotate(-3deg);
+    }
+    75% {
+      transform: scale(1.08) rotate(3deg);
+    }
+  }
+
+  @keyframes boardstorm-flash {
+    0%,
+    100% {
+      opacity: 0.3;
+    }
+    50% {
+      opacity: 0.7;
+    }
+  }
+
+  @keyframes boardstorm-text-pulse {
+    0%,
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+    50% {
+      transform: scale(1.1);
+      opacity: 0.85;
+    }
+  }
+
+  .animate-boardstorm-tile {
+    animation: boardstorm-shake 0.25s ease-in-out infinite;
+    z-index: 10;
+  }
+
+  .animate-boardstorm-flash {
+    animation: boardstorm-flash 0.4s ease-in-out infinite;
+  }
+
+  .animate-boardstorm-text {
+    animation: boardstorm-text-pulse 0.5s ease-in-out infinite;
+  }
+}

@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { GameBoard } from '@/components/board/GameBoard';
 import { PlayerDicePanel } from '@/components/dice/PlayerDicePanel';
 import { BoardMoodReveal } from '@/components/game/BoardMoodReveal';
+import { BoardstormOverlay } from '@/components/game/BoardstormOverlay';
 import type { PowerAction } from '@/components/game/PowerUsePanel';
 import { TileResolutionBanner } from '@/components/game/TileResolutionBanner';
 import { TurnHud } from '@/components/game/TurnHud';
@@ -23,6 +24,12 @@ import {
   calculateTargetPosition,
 } from '@/utils/playerMovement';
 import { generateBoard } from '@/utils/tileGeneration';
+import {
+  applyBoardstorm,
+  BOARDSTORM_ANIMATION,
+  boardstormDelay,
+  shouldTriggerBoardstorm,
+} from '@/utils/boardstorm';
 import { resolveTileLanding } from '@/utils/tileResolution';
 import {
   advanceTurn,
@@ -61,8 +68,10 @@ export function GamePage() {
   const [resolutionMessage, setResolutionMessage] = useState<string | null>(
     null,
   );
+  const [boardstormActive, setBoardstormActive] = useState(false);
+  const [mutatingTiles, setMutatingTiles] = useState<number[]>([]);
 
-  const isBusy = activePlayerId !== null;
+  const isBusy = activePlayerId !== null || boardstormActive;
   const currentPlayerId = getCurrentPlayerId(turnState);
 
   const currentPlayer = useMemo(
@@ -322,16 +331,50 @@ export function GamePage() {
     ],
   );
 
+  /** Runs the Boardstorm animation and mutates ~10 tiles on the board. */
+  const runBoardstorm = useCallback(async () => {
+    if (!boardTiles) {
+      return;
+    }
+
+    setBoardstormActive(true);
+    setResolutionMessage('⚡ BOARDSTORM! The board is shifting…');
+
+    await boardstormDelay(BOARDSTORM_ANIMATION.rumble);
+
+    const { tiles, mutatedNumbers } = applyBoardstorm(boardTiles);
+    setMutatingTiles(mutatedNumbers);
+
+    await boardstormDelay(BOARDSTORM_ANIMATION.highlight);
+
+    setBoardTiles(tiles);
+
+    await boardstormDelay(BOARDSTORM_ANIMATION.settle);
+
+    setMutatingTiles([]);
+    setBoardstormActive(false);
+    setResolutionMessage(
+      `Boardstorm complete! ${mutatedNumbers.length} tiles mutated.`,
+    );
+  }, [boardTiles]);
+
   /** Ends the current player's turn and passes play to the next player. */
-  const handleEndTurn = useCallback(() => {
+  const handleEndTurn = useCallback(async () => {
     if (!canEndTurn || isBusy) {
       return;
     }
 
     setCanEndTurn(false);
     setResolutionMessage(null);
-    setTurnState((current) => advanceTurn(current));
-  }, [canEndTurn, isBusy]);
+
+    const previousRound = turnState.round;
+    const nextTurn = advanceTurn(turnState);
+    setTurnState(nextTurn);
+
+    if (shouldTriggerBoardstorm(previousRound, nextTurn.round)) {
+      await runBoardstorm();
+    }
+  }, [canEndTurn, isBusy, runBoardstorm, turnState]);
 
   if (gamePhase === 'mood-reveal') {
     return <BoardMoodReveal mood={boardMood} onStart={handleStartGame} />;
@@ -350,7 +393,14 @@ export function GamePage() {
         boardMood={boardMood}
       />
       <TileResolutionBanner message={resolutionMessage} />
-      <GameBoard players={players} tiles={boardTiles} />
+      <div className="relative w-full max-w-3xl">
+        <GameBoard
+          players={players}
+          tiles={boardTiles}
+          mutatingTiles={mutatingTiles}
+        />
+        <BoardstormOverlay active={boardstormActive} />
+      </div>
       <div className="grid w-full max-w-3xl grid-cols-1 gap-3 sm:grid-cols-2">
         {players.map((player) => (
           <PlayerDicePanel

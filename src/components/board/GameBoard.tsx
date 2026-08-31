@@ -8,9 +8,15 @@ const grid = getBoardGrid();
 type GameBoardProps = {
   players: Player[];
   tiles: BoardTile[];
+  mutatingTiles?: number[];
 };
 
-export function GameBoard({ players, tiles }: GameBoardProps) {
+export function GameBoard({
+  players,
+  tiles,
+  mutatingTiles = [],
+}: GameBoardProps) {
+  const mutatingSet = new Set(mutatingTiles);
   const tileMap = new Map(tiles.map((tile) => [tile.number, tile]));
 
   const playersByTile = players.reduce<Map<number, Player[]>>((map, player) => {
@@ -44,6 +50,7 @@ export function GameBoard({ players, tiles }: GameBoardProps) {
                 key={tileNumber}
                 tile={tile}
                 isStart={tileNumber === 1}
+                isMutating={mutatingSet.has(tileNumber)}
                 players={playersByTile.get(tileNumber) ?? []}
               />
             );

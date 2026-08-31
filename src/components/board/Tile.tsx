@@ -6,10 +6,16 @@ import { PlayerToken } from './PlayerToken';
 type TileProps = {
   tile: BoardTile;
   isStart?: boolean;
+  isMutating?: boolean;
   players: Player[];
 };
 
-export function Tile({ tile, isStart = false, players }: TileProps) {
+export function Tile({
+  tile,
+  isStart = false,
+  isMutating = false,
+  players,
+}: TileProps) {
   const typeStyle = TILE_TYPE_STYLES[tile.type];
   const typeLabel = TILE_TYPE_LABELS[tile.type];
 
@@ -19,7 +25,7 @@ export function Tile({ tile, isStart = false, players }: TileProps) {
         isStart
           ? 'border-boardstorm-accent bg-amber-500/20 text-amber-300 ring-2 ring-boardstorm-accent ring-offset-1 ring-offset-boardstorm-bg'
           : typeStyle
-      }`}
+      } ${isMutating ? 'animate-boardstorm-tile ring-2 ring-yellow-400' : ''}`}
       aria-label={
         isStart
           ? `Tile ${tile.number}, start, ${tile.type}`
