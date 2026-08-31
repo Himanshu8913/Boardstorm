@@ -2,27 +2,18 @@ import { Link } from 'react-router-dom';
 
 export function HomePage() {
   return (
-    <section className="flex flex-col items-center justify-center gap-6 py-16 text-center">
-      <h1 className="text-5xl font-bold tracking-tight">Boardstorm</h1>
-      <p className="max-w-md text-lg text-boardstorm-muted">
-        A board game that never plays the same way twice.
+    <section className="flex flex-col items-center justify-center gap-4 py-16 text-center">
+      <h1 className="text-4xl font-bold tracking-tight">Boardstorm</h1>
+      <p className="max-w-md text-slate-600">
+        Every Board. A New Storm.
       </p>
-      <div className="flex flex-col gap-3 sm:flex-row">
-        <Link
-          to="/game"
-          state={{ mode: 'solo' }}
-          className="rounded-xl bg-boardstorm-accent px-8 py-3 text-lg font-semibold text-boardstorm-bg transition-opacity hover:opacity-90"
-        >
-          Solo vs Ghosts
-        </Link>
-        <Link
-          to="/game"
-          state={{ mode: 'multiplayer' }}
-          className="rounded-xl border border-slate-600 px-8 py-3 text-lg font-semibold text-white transition-colors hover:bg-slate-800"
-        >
-          Local Multiplayer
-        </Link>
-      </div>
+      <p className="text-sm text-slate-500">Home screen — coming in Phase 9</p>
+      <Link
+        to="/game"
+        className="mt-4 rounded-lg bg-slate-900 px-6 py-2.5 text-sm font-semibold text-white hover:bg-slate-800"
+      >
+        Go to Game
+      </Link>
     </section>
   );
 }

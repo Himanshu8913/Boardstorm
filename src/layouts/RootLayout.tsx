@@ -3,19 +3,19 @@ import { NavLink, Outlet } from 'react-router-dom';
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   `rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
     isActive
-      ? 'bg-boardstorm-accent text-boardstorm-bg'
-      : 'text-boardstorm-muted hover:bg-boardstorm-surface hover:text-white'
+      ? 'bg-slate-900 text-white'
+      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
   }`;
 
-export function Layout() {
+export function RootLayout() {
   return (
-    <div className="flex min-h-screen flex-col">
-      <header className="border-b border-slate-700 bg-boardstorm-surface">
+    <div className="flex min-h-screen flex-col bg-white text-slate-900">
+      <header className="border-b border-slate-200">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4">
-          <NavLink to="/" className="text-xl font-bold tracking-tight text-white">
+          <NavLink to="/" className="text-xl font-bold tracking-tight">
             Boardstorm
           </NavLink>
-          <nav className="flex gap-2">
+          <nav className="flex gap-2" aria-label="Main">
             <NavLink to="/" end className={navLinkClass}>
               Home
             </NavLink>
