@@ -54,6 +54,7 @@ export function PlayerToken({
       <div className="player-token__pawn" aria-hidden>
         <div className="player-token__head">
           <span className="player-token__highlight" />
+          <span className="player-token__highlight player-token__highlight--small" />
           <span className="player-token__initial">{initial}</span>
         </div>
         <div className="player-token__collar" />
@@ -64,6 +65,7 @@ export function PlayerToken({
         <div className="player-token__base">
           <span className="player-token__base-rim" />
         </div>
+        <span className="player-token__gloss" />
       </div>
       {isCurrentTurn && (
         <span className="player-token__turn-ring" aria-hidden />
