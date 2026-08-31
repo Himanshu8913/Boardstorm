@@ -80,7 +80,7 @@ export function DiceSelector({
             aria-pressed={isSelected}
             onClick={() => onSelect(type)}
             className={cn(
-              'flex min-h-[72px] flex-col items-center justify-center gap-1 rounded-lg border-2 border-border bg-surface px-3 py-3 text-sm font-semibold transition-all duration-fast',
+              'flex min-h-[44px] flex-col items-center justify-center gap-1 rounded-lg border-2 border-border bg-surface px-3 py-3 text-sm font-semibold transition-all duration-fast',
               'hover:scale-[1.02] active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary',
               'disabled:pointer-events-none disabled:opacity-50 disabled:scale-100',
               isSelected && selectedClass,

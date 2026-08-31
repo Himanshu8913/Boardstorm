@@ -44,7 +44,9 @@ export function HomePage() {
         <p className="text-sm font-semibold uppercase tracking-[0.2em] text-primary">
           Boardstorm
         </p>
-        <h1 className="mt-2 text-hero text-ink">Every Board. A New Storm.</h1>
+        <h1 className="mt-2 text-4xl font-semibold text-ink sm:text-5xl lg:text-hero">
+          Every Board. A New Storm.
+        </h1>
         <p className="mt-4 max-w-xl text-base text-ink-muted">
           Race to tile 100 on a board that shifts beneath you. Pick your dice,
           dodge traps, chase boosts, and survive the Boardstorm.

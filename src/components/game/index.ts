@@ -1,5 +1,6 @@
 export { BoardMoodReveal } from '@/components/game/BoardMoodReveal';
 export { BoardstormOverlay } from '@/components/game/BoardstormOverlay';
+export { MobileGameControls } from '@/components/game/MobileGameControls';
 export { MatchSetup } from '@/components/game/MatchSetup';
 export { PlayerDicePanel } from '@/components/game/PlayerDicePanel';
 export { PlayerList } from '@/components/game/PlayerList';

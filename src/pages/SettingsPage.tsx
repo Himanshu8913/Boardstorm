@@ -40,14 +40,14 @@ function Toggle({ checked, onChange, label }: ToggleProps) {
       aria-label={label}
       onClick={() => onChange(!checked)}
       className={cn(
-        'relative h-8 w-14 rounded-full transition-colors duration-fast',
+        'relative h-11 w-[3.25rem] rounded-full transition-colors duration-fast',
         checked ? 'bg-primary' : 'bg-border-strong',
       )}
     >
       <span
         className={cn(
-          'absolute top-1 h-6 w-6 rounded-full bg-surface shadow-sm transition-transform duration-fast',
-          checked ? 'translate-x-7' : 'translate-x-1',
+          'absolute top-1 h-9 w-9 rounded-full bg-surface shadow-sm transition-transform duration-fast',
+          checked ? 'translate-x-[1.35rem]' : 'translate-x-1',
         )}
       />
     </button>
@@ -81,7 +81,7 @@ function VolumeSlider({
         disabled={disabled}
         aria-label={label}
         onChange={(event) => onChange(Number(event.target.value))}
-        className="h-2 w-full cursor-pointer accent-primary disabled:cursor-not-allowed disabled:opacity-50"
+            className="h-3 w-full min-h-[44px] cursor-pointer accent-primary disabled:cursor-not-allowed disabled:opacity-50"
       />
       <span className="w-10 text-right text-xs font-semibold tabular-nums text-ink-muted">
         {value}%
@@ -103,7 +103,7 @@ export function SettingsPage() {
   const audioDisabled = !settings.soundEnabled;
 
   return (
-    <section className="mx-auto flex max-w-2xl flex-col gap-6 py-4 sm:py-8">
+    <section className="mx-auto flex max-w-2xl flex-col gap-4 px-1 py-4 sm:gap-6 sm:px-0 sm:py-8">
       <div>
         <h1 className="text-page-title text-ink">Settings</h1>
         <p className="mt-2 text-sm text-ink-muted">

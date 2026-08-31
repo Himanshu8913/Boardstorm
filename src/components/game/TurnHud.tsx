@@ -3,6 +3,7 @@ import { getRoundsUntilBoardstorm } from '@/game/engines/turnEngine';
 import { useGameStore } from '@/hooks/useGameStore';
 import { selectCurrentPlayer } from '@/store/selectors';
 import { Badge } from '@/components/ui/Badge';
+import { cn } from '@/components/ui/cn';
 
 export function TurnHud() {
   const turn = useGameStore((state) => state.turn);
@@ -12,27 +13,36 @@ export function TurnHud() {
 
   return (
     <div
-      className="flex flex-wrap items-center justify-center gap-2 rounded-xl border border-border bg-surface px-3 py-3 shadow-sm sm:gap-3 sm:px-4"
+      className={cn(
+        'grid grid-cols-2 gap-2 rounded-xl border border-border bg-surface p-2 shadow-sm',
+        'sm:flex sm:flex-wrap sm:items-center sm:justify-center sm:gap-3 sm:p-3',
+      )}
       aria-live="polite"
     >
-      <Badge variant="primary">
+      <Badge variant="primary" className="min-h-11 justify-center text-xs sm:text-sm">
         <span
-          className="inline-block h-2.5 w-2.5 rounded-full"
+          className="inline-block h-2.5 w-2.5 shrink-0 rounded-full"
           style={{ backgroundColor: currentPlayer?.color ?? '#94a3b8' }}
           aria-hidden
         />
-        {currentPlayer?.name ?? '—'}
+        <span className="truncate">{currentPlayer?.name ?? '—'}</span>
       </Badge>
 
-      <Badge variant="secondary">
+      <Badge variant="secondary" className="min-h-11 justify-center text-xs sm:text-sm">
         <span aria-hidden>{MOOD_EMOJI[match.boardMood]}</span>
-        {MOOD_LABELS[match.boardMood]}
+        <span className="hidden sm:inline">{MOOD_LABELS[match.boardMood]}</span>
       </Badge>
 
-      <Badge variant="default">Round {turn.round}</Badge>
+      <Badge variant="default" className="min-h-11 justify-center text-xs sm:text-sm">
+        <span className="sm:hidden">R{turn.round}</span>
+        <span className="hidden sm:inline">Round {turn.round}</span>
+      </Badge>
 
-      <Badge variant="mystery">
-        Boardstorm in {roundsUntilBoardstorm}
+      <Badge variant="mystery" className="min-h-11 justify-center text-xs sm:text-sm">
+        <span className="sm:hidden">⚡ {roundsUntilBoardstorm}</span>
+        <span className="hidden sm:inline">
+          Boardstorm in {roundsUntilBoardstorm}
+        </span>
       </Badge>
     </div>
   );

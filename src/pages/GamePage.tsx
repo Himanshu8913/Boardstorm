@@ -3,6 +3,7 @@ import {
   BoardMoodReveal,
   BoardstormOverlay,
   MatchSetup,
+  MobileGameControls,
   PlayerDicePanel,
   PlayerList,
   TileResolutionBanner,
@@ -28,22 +29,23 @@ export function GamePage() {
   }
 
   return (
-    <section className="flex flex-col gap-4 pb-8">
+    <section className="game-screen flex flex-col gap-3 pb-[min(58vh,30rem)] sm:gap-4 lg:pb-8">
       <TurnHud />
       <TileResolutionBanner />
 
-      <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
-        <div className="relative flex flex-1 justify-center lg:min-w-0">
-          <GameBoard className="w-full" />
+      <div className="game-screen__layout flex flex-col gap-4 lg:flex-row lg:items-start lg:gap-6">
+        <div className="game-screen__board relative min-w-0 flex-1 lg:max-w-[70%]">
+          <GameBoard className="w-full max-w-none" />
           <BoardstormOverlay />
         </div>
 
-        <aside className="flex w-full flex-col gap-4 lg:w-80 lg:shrink-0">
+        <aside className="game-screen__sidebar hidden w-full flex-col gap-4 lg:flex lg:w-80 lg:shrink-0">
           <PlayerList />
           <PlayerDicePanel />
         </aside>
       </div>
 
+      <MobileGameControls />
       <WinnerScreen />
     </section>
   );

@@ -102,11 +102,24 @@ function PlayerTurnPanel({
   );
 }
 
-export function PlayerDicePanel() {
+export function PlayerDicePanel({ sheet = false }: { sheet?: boolean }) {
   const turn = useGameStore((state) => state.turn);
   const currentPlayerId = useGameStore((state) =>
     getCurrentPlayerId(state.turn),
   );
+
+  if (sheet) {
+    if (currentPlayerId === null) {
+      return null;
+    }
+
+    return (
+      <div className="flex flex-col gap-3">
+        <h2 className="text-sm font-semibold text-ink">Your turn</h2>
+        <PlayerTurnPanel playerId={currentPlayerId} expanded />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-3">
