@@ -1,9 +1,29 @@
+@import './styles/tokens.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   body {
-    @apply min-h-screen antialiased;
+    @apply min-h-screen bg-background font-sans text-ink antialiased;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-ink-inverse shadow-primary transition-all duration-fast hover:bg-primary-hover hover:scale-[1.02] active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center rounded-lg border-2 border-primary bg-surface px-6 py-3 text-sm font-semibold text-primary transition-all duration-fast hover:bg-background-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary;
+  }
+
+  .card-surface {
+    @apply rounded-xl border border-border bg-surface p-6 shadow-md;
+  }
+
+  .page-gradient {
+    @apply bg-gradient-to-b from-background via-background to-background-accent;
   }
 }

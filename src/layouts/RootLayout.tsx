@@ -1,18 +1,21 @@
 import { NavLink, Outlet } from 'react-router-dom';
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
-  `rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+  `rounded-lg px-4 py-2 text-sm font-medium transition-colors duration-fast ${
     isActive
-      ? 'bg-slate-900 text-white'
-      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+      ? 'bg-primary text-ink-inverse shadow-sm'
+      : 'text-ink-muted hover:bg-background-accent hover:text-ink'
   }`;
 
 export function RootLayout() {
   return (
-    <div className="flex min-h-screen flex-col bg-white text-slate-900">
-      <header className="border-b border-slate-200">
+    <div className="page-gradient flex min-h-screen flex-col">
+      <header className="border-b border-border bg-surface/80 backdrop-blur-sm">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4">
-          <NavLink to="/" className="text-xl font-bold tracking-tight">
+          <NavLink
+            to="/"
+            className="text-xl font-semibold tracking-tight text-primary"
+          >
             Boardstorm
           </NavLink>
           <nav className="flex gap-2" aria-label="Main">
