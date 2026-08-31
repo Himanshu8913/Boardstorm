@@ -9,9 +9,12 @@ type PlayerDicePanelProps = {
   displayValue: number | null;
   lastRoll: number | null;
   isRolling: boolean;
+  isCurrentTurn: boolean;
+  canEndTurn: boolean;
   isDisabled: boolean;
   onSelectDie: (dieType: DieType) => void;
   onRoll: () => void;
+  onEndTurn: () => void;
 };
 
 export function PlayerDicePanel({
@@ -20,12 +23,23 @@ export function PlayerDicePanel({
   displayValue,
   lastRoll,
   isRolling,
+  isCurrentTurn,
+  canEndTurn,
   isDisabled,
   onSelectDie,
   onRoll,
+  onEndTurn,
 }: PlayerDicePanelProps) {
+  const panelDisabled = isDisabled || !isCurrentTurn;
+
   return (
-    <div className="flex flex-col gap-2 rounded-lg border border-slate-700 bg-boardstorm-surface p-3">
+    <div
+      className={`flex flex-col gap-2 rounded-lg border p-3 transition-colors ${
+        isCurrentTurn
+          ? 'border-boardstorm-accent bg-boardstorm-surface ring-1 ring-boardstorm-accent/40'
+          : 'border-slate-700 bg-boardstorm-surface/60 opacity-70'
+      }`}
+    >
       <div className="flex items-center justify-between gap-2">
         <span className="flex items-center gap-2 text-sm font-medium">
           <span
@@ -33,6 +47,11 @@ export function PlayerDicePanel({
             style={{ backgroundColor: player.color }}
           />
           {player.name} — Tile {player.position}
+          {isCurrentTurn && (
+            <span className="rounded bg-boardstorm-accent/20 px-1.5 py-0.5 text-xs text-amber-300">
+              Your turn
+            </span>
+          )}
         </span>
         <DiceDisplay value={displayValue} isRolling={isRolling} />
       </div>
@@ -40,17 +59,28 @@ export function PlayerDicePanel({
       <DiceSelector
         selected={selectedDie}
         onSelect={onSelectDie}
-        disabled={isDisabled}
+        disabled={panelDisabled}
       />
 
       <button
         type="button"
-        disabled={isDisabled}
+        disabled={panelDisabled}
         onClick={onRoll}
         className="rounded-md bg-boardstorm-accent px-3 py-2 text-sm font-semibold text-boardstorm-bg hover:opacity-90 disabled:opacity-50"
       >
         {isRolling ? 'Rolling…' : 'Roll'}
       </button>
+
+      {isCurrentTurn && (
+        <button
+          type="button"
+          disabled={!canEndTurn || isDisabled}
+          onClick={onEndTurn}
+          className="rounded-md border border-slate-600 px-3 py-2 text-sm font-medium text-white hover:bg-slate-700 disabled:opacity-50"
+        >
+          End Turn
+        </button>
+      )}
 
       {lastRoll !== null && !isRolling && (
         <p className="text-xs text-boardstorm-muted">
