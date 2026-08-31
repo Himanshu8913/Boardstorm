@@ -1,0 +1,93 @@
+@keyframes token-boost {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-3px) scale(1.12);
+  }
+}
+
+@keyframes token-trap {
+  0%,
+  100% {
+    transform: translateX(0) rotate(0deg);
+  }
+  25% {
+    transform: translateX(-2px) rotate(-8deg);
+  }
+  75% {
+    transform: translateX(2px) rotate(8deg);
+  }
+}
+
+@keyframes token-mystery {
+  0%,
+  100% {
+    opacity: 1;
+    filter: brightness(1);
+  }
+  50% {
+    opacity: 0.85;
+    filter: brightness(1.2);
+  }
+}
+
+@keyframes tile-mutate {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgb(168 85 247 / 0);
+  }
+  50% {
+    box-shadow: 0 0 0 3px rgb(168 85 247 / 0.45);
+  }
+}
+
+@keyframes board-rumble {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  20% {
+    transform: translate(-1px, 1px);
+  }
+  40% {
+    transform: translate(1px, -1px);
+  }
+  60% {
+    transform: translate(-1px, -1px);
+  }
+  80% {
+    transform: translate(1px, 1px);
+  }
+}
+
+.token-motion-boost {
+  animation: token-boost 400ms var(--ease-out) 2;
+}
+
+.token-motion-trap {
+  animation: token-trap 280ms ease-in-out 3;
+}
+
+.token-motion-mystery {
+  animation: token-mystery 500ms ease-in-out 2;
+}
+
+.tile-mutating {
+  animation: tile-mutate 600ms ease-in-out infinite;
+}
+
+.board-rumbling {
+  animation: board-rumble 500ms ease-in-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .token-motion-boost,
+  .token-motion-trap,
+  .token-motion-mystery,
+  .tile-mutating,
+  .board-rumbling {
+    animation: none;
+  }
+}
