@@ -8,7 +8,7 @@ export function MobileGameControls() {
       className="fixed inset-x-0 bottom-0 z-30 lg:hidden"
       aria-label="Turn controls"
     >
-      <div className="mobile-controls-sheet mx-auto max-h-[min(62vh,32rem)] w-full max-w-5xl overflow-y-auto rounded-t-2xl border-t border-border bg-surface/95 px-3 py-4 shadow-lg backdrop-blur-md sm:px-4">
+      <div className="mobile-controls-sheet mx-auto max-h-[min(62vh,32rem)] w-full max-w-5xl overflow-y-auto rounded-t-2xl border-t border-border bg-surface-elevated/95 px-3 py-4 shadow-lg backdrop-blur-md sm:px-4">
         <div
           className="mx-auto mb-3 h-1 w-10 rounded-full bg-border-strong"
           aria-hidden

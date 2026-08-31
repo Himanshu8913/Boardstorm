@@ -16,12 +16,12 @@ export type BadgeProps = {
 };
 
 const variantClasses: Record<BadgeVariant, string> = {
-  default: 'bg-background-accent text-ink border-border',
-  primary: 'bg-primary/10 text-primary border-primary/20',
-  secondary: 'bg-secondary/15 text-secondary border-secondary/30',
-  success: 'bg-success/15 text-green-800 border-success/30',
-  danger: 'bg-danger/15 text-red-800 border-danger/30',
-  mystery: 'bg-mystery/15 text-purple-800 border-mystery/30',
+  default: 'bg-elevated text-ink border-border',
+  primary: 'bg-primary/20 text-blue-200 border-primary/40',
+  secondary: 'bg-secondary/20 text-orange-200 border-secondary/40',
+  success: 'bg-success/20 text-green-200 border-success/40',
+  danger: 'bg-danger/20 text-red-200 border-danger/40',
+  mystery: 'bg-mystery/20 text-purple-200 border-mystery/40',
 };
 
 export function Badge({

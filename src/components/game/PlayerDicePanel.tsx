@@ -48,7 +48,7 @@ function PlayerTurnPanel({
   return (
     <div
       className={cn(
-        'rounded-xl border border-border bg-surface shadow-sm transition-all duration-fast',
+        'rounded-xl border border-border bg-surface-elevated shadow-md transition-all duration-fast',
         expanded ? 'p-4' : 'px-3 py-2',
         isCurrent && 'ring-2 ring-primary/30',
       )}

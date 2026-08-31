@@ -27,7 +27,7 @@
   }
 
   .page-gradient {
-    @apply bg-gradient-to-b from-background via-background to-background-accent;
+    @apply bg-gradient-to-b from-background via-background-accent to-background;
   }
 
   .animate-modal-in {

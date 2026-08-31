@@ -14,7 +14,7 @@ export function TurnHud() {
   return (
     <div
       className={cn(
-        'grid grid-cols-2 gap-2 rounded-xl border border-border bg-surface p-2 shadow-sm',
+        'grid grid-cols-2 gap-2 rounded-xl border border-border bg-surface-elevated/90 p-2 shadow-md backdrop-blur-sm',
         'sm:flex sm:flex-wrap sm:items-center sm:justify-center sm:gap-3 sm:p-3',
       )}
       aria-live="polite"

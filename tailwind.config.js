@@ -15,6 +15,11 @@ export default {
           DEFAULT: 'var(--color-secondary)',
           hover: 'var(--color-secondary-hover)',
         },
+        accent: {
+          green: 'var(--color-accent-green)',
+          'green-hover': 'var(--color-accent-green-hover)',
+        },
+        elevated: 'var(--color-surface-elevated)',
         success: 'var(--color-success)',
         danger: 'var(--color-danger)',
         mystery: 'var(--color-mystery)',

@@ -75,8 +75,8 @@ export function WinnerScreen() {
       </div>
 
       <div className="winner-screen__panel animate-modal-in">
-        <div className="winner-screen__sparkle winner-screen__sparkle--active" aria-hidden>
-          ✨
+        <div className="winner-screen__trophy" aria-hidden>
+          🏆
         </div>
 
         <span

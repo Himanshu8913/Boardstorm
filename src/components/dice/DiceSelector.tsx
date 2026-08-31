@@ -47,7 +47,7 @@ const dieOptions: {
     range: '1–4',
     icon: SafeDieIcon,
     selectedClass:
-      'border-primary bg-primary/10 text-primary ring-2 ring-primary ring-offset-2',
+      'border-primary bg-primary/20 text-blue-200 ring-2 ring-primary ring-offset-2 ring-offset-surface',
   },
   {
     type: 'risk',
@@ -55,7 +55,7 @@ const dieOptions: {
     range: '1–8',
     icon: RiskDieIcon,
     selectedClass:
-      'border-danger bg-danger/10 text-danger ring-2 ring-danger ring-offset-2',
+      'border-danger bg-danger/20 text-red-200 ring-2 ring-danger ring-offset-2 ring-offset-surface',
   },
 ];
 
@@ -102,7 +102,7 @@ export function DiceSelector({
             onClick={() => onSelect(type)}
             onKeyDown={(event) => handleKeyDown(event, type)}
             className={cn(
-              'flex min-h-[44px] flex-col items-center justify-center gap-1 rounded-lg border-2 border-border bg-surface px-3 py-3 text-sm font-semibold transition-all duration-fast',
+              'flex min-h-[52px] flex-col items-center justify-center gap-1 rounded-xl border-2 border-border bg-elevated px-3 py-3 text-sm font-semibold transition-all duration-fast',
               'hover:scale-[1.02] active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary',
               'disabled:pointer-events-none disabled:opacity-50 disabled:scale-100',
               isSelected && selectedClass,

@@ -1,12 +1,12 @@
-import { BOARD_MOODS, POWER_LABELS } from '@/constants/gameplay';
-import type { GameMode } from '@/types/match';
+import { POWER_LABELS } from '@/constants/gameplay';
+import type { BoardMood, GameMode } from '@/types/match';
 import type { DieType } from '@/types/dice';
 import type { PowerAction } from '@/types/power';
 import type { PlayerId } from '@/types/playerId';
 import type { PlayerState } from '@/types/player';
 import type { GameStoreState } from '@/store/gameStore';
 import { useGameStore } from '@/store/gameStore';
-import { generateBoard, pickRandomBoardMood } from '@/game/engines/boardEngine';
+import { generateBoard } from '@/game/engines/boardEngine';
 import { applyBoardstorm } from '@/game/engines/boardstormEngine';
 import { resolveCollision } from '@/game/engines/collisionEngine';
 import { rollDie } from '@/game/engines/diceEngine';
@@ -249,14 +249,13 @@ export const gameController = {
     const store = getStore();
     store.resetMatch();
 
-    const boardMood = pickRandomBoardMood(BOARD_MOODS);
     const matchId = crypto.randomUUID();
 
     store.setMatch({
       id: matchId,
       status: 'moodReveal',
       mode,
-      boardMood,
+      boardMood: 'balanced',
       winnerId: null,
       createdAt: Date.now(),
       finishedAt: null,
@@ -268,16 +267,18 @@ export const gameController = {
     });
   },
 
-  /** After mood reveal — generate board and begin play. */
-  beginPlay() {
+  /** After mood pick — generate board and begin play. */
+  beginPlay(boardMood?: BoardMood) {
     const store = getStore();
     if (store.match.status !== 'moodReveal') {
       return;
     }
 
+    const mood = boardMood ?? store.match.boardMood;
     const players = createPlayersForMode(store.match.mode);
     const playerIds = Object.keys(players).map(Number) as PlayerId[];
-    const tiles = generateBoard(store.match.boardMood);
+    const tiles = generateBoard(mood);
+
     const turn = createInitialTurnState(playerIds);
 
     store.setBoard({ tiles, boardstormCount: 0 });
@@ -288,7 +289,7 @@ export const gameController = {
       lastRoll: Object.fromEntries(playerIds.map((id) => [id, null])),
       rollingPlayerId: null,
     });
-    store.setMatch({ ...store.match, status: 'playing' });
+    store.setMatch({ ...store.match, status: 'playing', boardMood: mood });
     store.setUI({ ...store.ui, resolutionMessage: null, canEndTurn: false });
 
     emit('match_started', {

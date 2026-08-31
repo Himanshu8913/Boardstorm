@@ -43,7 +43,7 @@ export function GameBoard({ className }: GameBoardProps) {
       aria-rowcount={grid.length}
       aria-colcount={grid[0]?.length ?? 0}
       className={cn(
-        'grid w-full min-w-0 max-w-full grid-cols-10 gap-0.5 rounded-lg border border-border bg-surface p-0.5 shadow-md sm:gap-1.5 sm:p-2 md:gap-2',
+        'grid w-full min-w-0 max-w-full grid-cols-10 gap-0.5 rounded-xl border-2 border-border-strong bg-surface-elevated p-1 shadow-lg sm:gap-1.5 sm:p-2 md:gap-2',
         animation.boardRumbling && 'board-rumbling',
         className,
       )}
