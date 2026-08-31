@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { GameBoard } from '@/components/board/GameBoard';
 import { PlayerDicePanel } from '@/components/dice/PlayerDicePanel';
 import { BoardMoodReveal } from '@/components/game/BoardMoodReveal';
+import type { PowerAction } from '@/components/game/PowerUsePanel';
 import { TileResolutionBanner } from '@/components/game/TileResolutionBanner';
 import { TurnHud } from '@/components/game/TurnHud';
 import type { BoardMood } from '@/types/boardMood';
@@ -12,6 +13,11 @@ import { pickRandomBoardMood } from '@/utils/boardMood';
 import { BOARD_TILE_COUNT } from '@/utils/boardLayout';
 import { playDiceRollAnimation } from '@/utils/diceRollAnimation';
 import { rollDie } from '@/utils/dice';
+import {
+  formatPeekMessage,
+  getPeekTiles,
+  getSabotagePosition,
+} from '@/utils/powerEffects';
 import {
   animatePlayerToPosition,
   calculateTargetPosition,
@@ -81,6 +87,14 @@ export function GamePage() {
     [],
   );
 
+  const clearPlayerPower = useCallback((playerId: number) => {
+    setPlayers((current) =>
+      current.map((player) =>
+        player.id === playerId ? { ...player, activePower: null } : player,
+      ),
+    );
+  }, []);
+
   /**
    * Applies tile resolution side-effects (power grant, mystery tracking)
    * and animates any resulting position change.
@@ -90,6 +104,7 @@ export function GamePage() {
       playerId: number,
       landingPosition: number,
       board: BoardTile[],
+      shieldDisabled: boolean,
     ) => {
       const player = players.find((entry) => entry.id === playerId);
       if (!player) {
@@ -107,6 +122,7 @@ export function GamePage() {
         player,
         boardTiles: board,
         boardMood,
+        shieldDisabled,
       });
 
       setResolutionMessage(resolution.message);
@@ -117,9 +133,16 @@ export function GamePage() {
             return entry;
           }
 
+          let activePower = entry.activePower;
+          if (resolution.grantedPower) {
+            activePower = resolution.grantedPower;
+          } else if (resolution.powerConsumed) {
+            activePower = null;
+          }
+
           return {
             ...entry,
-            activePower: resolution.grantedPower ?? entry.activePower,
+            activePower,
             lastMysteryTile:
               resolution.lastMysteryTile ?? entry.lastMysteryTile,
           };
@@ -138,12 +161,11 @@ export function GamePage() {
   );
 
   /**
-   * Rolls the chosen die for the current player, plays the roll animation,
-   * moves the token, then resolves the landed tile effect.
+   * Executes a full dice roll: animation, movement, and tile resolution.
    */
-  const handleRoll = useCallback(
+  const performRoll = useCallback(
     async (playerId: number) => {
-      if (isBusy || !isPlayersTurn(turnState, playerId) || !boardTiles) {
+      if (!boardTiles) {
         return;
       }
 
@@ -153,6 +175,7 @@ export function GamePage() {
       }
 
       const dieType = selectedDice[playerId] ?? 'safe';
+      const shieldDisabled = dieType === 'risk';
       const rollResult = rollDie(dieType);
       const landingPosition = calculateTargetPosition(
         player.position,
@@ -179,17 +202,121 @@ export function GamePage() {
         );
       }
 
-      await applyTileResolution(playerId, landingPosition, boardTiles);
+      await applyTileResolution(
+        playerId,
+        landingPosition,
+        boardTiles,
+        shieldDisabled,
+      );
 
       setActivePlayerId(null);
       setCanEndTurn(true);
     },
+    [applyTileResolution, boardTiles, players, selectedDice, updatePlayerPosition],
+  );
+
+  const handleRoll = useCallback(
+    async (playerId: number) => {
+      if (isBusy || !isPlayersTurn(turnState, playerId)) {
+        return;
+      }
+
+      await performRoll(playerId);
+    },
+    [isBusy, performRoll, turnState],
+  );
+
+  /**
+   * Activates the player's stored mystery power.
+   */
+  const handleUsePower = useCallback(
+    async (playerId: number, action: PowerAction) => {
+      if (isBusy || !isPlayersTurn(turnState, playerId) || !boardTiles) {
+        return;
+      }
+
+      if (action.type === 'luckyRoll' && !canEndTurn) {
+        return;
+      }
+
+      const player = players.find((entry) => entry.id === playerId);
+      if (!player?.activePower) {
+        return;
+      }
+
+      setActivePlayerId(playerId);
+
+      if (action.type === 'luckyRoll') {
+        clearPlayerPower(playerId);
+        setResolutionMessage('Lucky Roll! Rolling again…');
+        await performRoll(playerId);
+        setActivePlayerId(null);
+        return;
+      }
+
+      if (action.type === 'peek') {
+        const peeked = getPeekTiles(player.position, boardTiles);
+        setResolutionMessage(formatPeekMessage(peeked));
+        clearPlayerPower(playerId);
+        setActivePlayerId(null);
+        return;
+      }
+
+      if (action.type === 'teleport') {
+        const from = player.position;
+        clearPlayerPower(playerId);
+        setResolutionMessage(`Teleported to tile ${action.targetTile}!`);
+
+        if (action.targetTile !== from) {
+          await animatePlayerToPosition(from, action.targetTile, (position) =>
+            updatePlayerPosition(playerId, position),
+          );
+        }
+
+        await applyTileResolution(
+          playerId,
+          action.targetTile,
+          boardTiles,
+          false,
+        );
+        setActivePlayerId(null);
+        return;
+      }
+
+      if (action.type === 'sabotage') {
+        const target = players.find(
+          (entry) => entry.id === action.targetPlayerId,
+        );
+        if (!target) {
+          setActivePlayerId(null);
+          return;
+        }
+
+        const newPosition = getSabotagePosition(target.position);
+        clearPlayerPower(playerId);
+        setResolutionMessage(
+          `Sabotage! ${target.name} moved back to tile ${newPosition}.`,
+        );
+
+        if (newPosition !== target.position) {
+          await animatePlayerToPosition(
+            target.position,
+            newPosition,
+            (position) => updatePlayerPosition(target.id, position),
+          );
+        }
+
+        setActivePlayerId(null);
+      }
+    },
     [
       applyTileResolution,
       boardTiles,
+      canEndTurn,
+      clearPlayerPower,
       isBusy,
+      performRoll,
       players,
-      selectedDice,
       turnState,
       updatePlayerPosition,
     ],
@@ -229,6 +356,7 @@ export function GamePage() {
           <PlayerDicePanel
             key={player.id}
             player={player}
+            allPlayers={players}
             selectedDie={selectedDice[player.id] ?? 'safe'}
             displayValue={displayValues[player.id] ?? null}
             lastRoll={lastRolls[player.id] ?? null}
@@ -244,6 +372,7 @@ export function GamePage() {
             }
             onRoll={() => handleRoll(player.id)}
             onEndTurn={handleEndTurn}
+            onUsePower={(action) => handleUsePower(player.id, action)}
           />
         ))}
       </div>

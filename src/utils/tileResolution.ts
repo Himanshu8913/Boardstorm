@@ -11,6 +11,8 @@ export type TileResolutionResult = {
   message: string;
   grantedPower: MysteryPower | null;
   lastMysteryTile: number | null;
+  /** True when a stored mystery power was consumed by this resolution. */
+  powerConsumed: boolean;
 };
 
 type ResolveTileLandingInput = {
@@ -19,6 +21,8 @@ type ResolveTileLandingInput = {
   player: Player;
   boardTiles: BoardTile[];
   boardMood: BoardMood;
+  /** Risk Die disables Shield during the turn it was rolled. */
+  shieldDisabled?: boolean;
 };
 
 /**
@@ -181,10 +185,14 @@ function resolveBoost(
   landingPosition: number,
   tileMap: Map<number, BoardTile>,
   boardMood: BoardMood,
-): { position: number; message: string } {
+  player: Player,
+): { position: number; message: string; powerConsumed: boolean } {
+  const doubleBoost = player.activePower === 'doubleBoost';
+  const applyDouble = (steps: number) => (doubleBoost ? steps * 2 : steps);
+
   switch (tile.boostEffect) {
     case 'spring': {
-      const steps = getBoostForwardSteps(3, boardMood);
+      const steps = applyDouble(getBoostForwardSteps(3, boardMood));
       const position = calculateTargetPosition(
         landingPosition,
         steps,
@@ -192,11 +200,14 @@ function resolveBoost(
       );
       return {
         position,
-        message: `Spring boost! Moved forward ${steps} tiles.`,
+        message: doubleBoost
+          ? `Spring boost doubled! Moved forward ${steps} tiles.`
+          : `Spring boost! Moved forward ${steps} tiles.`,
+        powerConsumed: doubleBoost,
       };
     }
     case 'rocket': {
-      const steps = getBoostForwardSteps(6, boardMood);
+      const steps = applyDouble(getBoostForwardSteps(6, boardMood));
       const position = calculateTargetPosition(
         landingPosition,
         steps,
@@ -204,7 +215,10 @@ function resolveBoost(
       );
       return {
         position,
-        message: `Rocket boost! Moved forward ${steps} tiles.`,
+        message: doubleBoost
+          ? `Rocket boost doubled! Moved forward ${steps} tiles.`
+          : `Rocket boost! Moved forward ${steps} tiles.`,
+        powerConsumed: doubleBoost,
       };
     }
     case 'vine': {
@@ -215,6 +229,7 @@ function resolveBoost(
           position === landingPosition
             ? 'Vine boost — no Mystery tile ahead.'
             : 'Vine boost! Jumped to the next Mystery tile.',
+        powerConsumed: false,
       };
     }
     case 'wind': {
@@ -225,10 +240,15 @@ function resolveBoost(
           position === landingPosition
             ? 'Wind boost — no other Boost tile found.'
             : 'Wind boost! Moved to the nearest Boost tile.',
+        powerConsumed: false,
       };
     }
     default:
-      return { position: landingPosition, message: 'Boost tile — no effect.' };
+      return {
+        position: landingPosition,
+        message: 'Boost tile — no effect.',
+        powerConsumed: false,
+      };
   }
 }
 
@@ -242,19 +262,49 @@ function resolveBoost(
 export function resolveTileLanding(
   input: ResolveTileLandingInput,
 ): TileResolutionResult {
-  const { tile, landingPosition, player, boardTiles, boardMood } = input;
+  const {
+    tile,
+    landingPosition,
+    player,
+    boardTiles,
+    boardMood,
+    shieldDisabled = false,
+  } = input;
   const tileMap = new Map(boardTiles.map((entry) => [entry.number, entry]));
+
+  const baseResult = {
+    grantedPower: null as MysteryPower | null,
+    lastMysteryTile: player.lastMysteryTile,
+    powerConsumed: false,
+  };
 
   if (tile.type === 'safe') {
     return {
       finalPosition: landingPosition,
       message: 'Safe tile — nothing happens.',
-      grantedPower: null,
-      lastMysteryTile: player.lastMysteryTile,
+      ...baseResult,
     };
   }
 
   if (tile.type === 'trap') {
+    if (player.activePower === 'phaseWalk') {
+      return {
+        finalPosition: landingPosition,
+        message: 'Phase Walk ignored the trap!',
+        ...baseResult,
+        powerConsumed: true,
+      };
+    }
+
+    if (player.activePower === 'shield' && !shieldDisabled) {
+      return {
+        finalPosition: landingPosition,
+        message: 'Shield blocked the trap!',
+        ...baseResult,
+        powerConsumed: true,
+      };
+    }
+
     const { position, message } = resolveTrap(
       tile,
       landingPosition,
@@ -265,23 +315,23 @@ export function resolveTileLanding(
     return {
       finalPosition: position,
       message,
-      grantedPower: null,
-      lastMysteryTile: player.lastMysteryTile,
+      ...baseResult,
     };
   }
 
   if (tile.type === 'boost') {
-    const { position, message } = resolveBoost(
+    const { position, message, powerConsumed } = resolveBoost(
       tile,
       landingPosition,
       tileMap,
       boardMood,
+      player,
     );
     return {
       finalPosition: position,
       message,
-      grantedPower: null,
-      lastMysteryTile: player.lastMysteryTile,
+      ...baseResult,
+      powerConsumed,
     };
   }
 
@@ -291,5 +341,6 @@ export function resolveTileLanding(
     message: `Mystery tile! Received ${POWER_LABELS[power]} power.`,
     grantedPower: power,
     lastMysteryTile: landingPosition,
+    powerConsumed: false,
   };
 }

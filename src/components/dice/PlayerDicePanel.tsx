@@ -1,11 +1,12 @@
 import type { Player } from '@/types/player';
 import type { DieType } from '@/types/dice';
-import { POWER_LABELS } from '@/types/power';
+import { PowerUsePanel, type PowerAction } from '@/components/game/PowerUsePanel';
 import { DiceDisplay } from './DiceDisplay';
 import { DiceSelector } from './DiceSelector';
 
 type PlayerDicePanelProps = {
   player: Player;
+  allPlayers: Player[];
   selectedDie: DieType;
   displayValue: number | null;
   lastRoll: number | null;
@@ -16,10 +17,12 @@ type PlayerDicePanelProps = {
   onSelectDie: (dieType: DieType) => void;
   onRoll: () => void;
   onEndTurn: () => void;
+  onUsePower: (action: PowerAction) => void;
 };
 
 export function PlayerDicePanel({
   player,
+  allPlayers,
   selectedDie,
   displayValue,
   lastRoll,
@@ -30,6 +33,7 @@ export function PlayerDicePanel({
   onSelectDie,
   onRoll,
   onEndTurn,
+  onUsePower,
 }: PlayerDicePanelProps) {
   const panelDisabled = isDisabled || !isCurrentTurn;
 
@@ -83,11 +87,14 @@ export function PlayerDicePanel({
         </button>
       )}
 
-      {player.activePower && (
-        <p className="text-xs text-purple-300">
-          Power: {POWER_LABELS[player.activePower]}
-        </p>
-      )}
+      <PowerUsePanel
+        player={player}
+        allPlayers={allPlayers}
+        isCurrentTurn={isCurrentTurn}
+        canUsePower={!isDisabled}
+        hasRolled={canEndTurn}
+        onUsePower={onUsePower}
+      />
 
       {lastRoll !== null && !isRolling && (
         <p className="text-xs text-boardstorm-muted">
