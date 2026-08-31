@@ -10,8 +10,12 @@ import { TurnHud } from '@/components/game/TurnHud';
 import { WinnerScreen } from '@/components/game/WinnerScreen';
 import type { BoardMood } from '@/types/boardMood';
 import type { GameMode } from '@/types/gameMode';
+import type {
+  ActiveTileEffect,
+} from '@/types/animation';
 import { createPlayers, INITIAL_PLAYERS, type Player } from '@/types/player';
 import type { BoardTile } from '@/types/tile';
+import type { TileType } from '@/types/tile';
 import type { DieType } from '@/types/dice';
 import { pickRandomBoardMood } from '@/utils/boardMood';
 import { BOARD_TILE_COUNT } from '@/utils/boardLayout';
@@ -41,6 +45,7 @@ import {
   shouldTriggerBoardstorm,
 } from '@/utils/boardstorm';
 import { resolveTileLanding } from '@/utils/tileResolution';
+import { scheduleAnimationClear } from '@/utils/gameAnimations';
 import {
   GHOST_END_TURN_DELAY_MS,
   GHOST_TURN_DELAY_MS,
@@ -92,6 +97,11 @@ export function GamePage() {
   );
   const [boardstormActive, setBoardstormActive] = useState(false);
   const [mutatingTiles, setMutatingTiles] = useState<number[]>([]);
+  const [activeTileEffect, setActiveTileEffect] =
+    useState<ActiveTileEffect | null>(null);
+  const [playerMotions, setPlayerMotions] = useState<
+    Map<number, 'boost' | 'trap' | 'mystery'>
+  >(new Map());
 
   const isBusy = activePlayerId !== null || boardstormActive;
   const isGameOver = winner !== null;
@@ -123,6 +133,8 @@ export function GamePage() {
     setResolutionMessage(null);
     setBoardstormActive(false);
     setMutatingTiles([]);
+    setActiveTileEffect(null);
+    setPlayerMotions(new Map());
     setWinner(null);
     setGamePhase('mood-reveal');
   }, [gameMode]);
@@ -194,6 +206,30 @@ export function GamePage() {
   );
 
   /**
+   * Plays a tile effect animation on the board and player token.
+   *
+   * @param tileNumber - Tile where the effect occurs
+   * @param effect - Tile type triggering the animation
+   * @param playerId - Player who landed on the tile
+   */
+  const triggerTileAnimation = useCallback(
+    (tileNumber: number, effect: TileType, playerId: number) => {
+      if (effect === 'safe') {
+        return;
+      }
+
+      setActiveTileEffect({ tileNumber, effect });
+      setPlayerMotions(new Map([[playerId, effect]]));
+
+      scheduleAnimationClear(() => {
+        setActiveTileEffect(null);
+        setPlayerMotions(new Map());
+      });
+    },
+    [],
+  );
+
+  /**
    * Applies tile resolution side-effects (power grant, mystery tracking)
    * and animates any resulting position change.
    *
@@ -215,6 +251,8 @@ export function GamePage() {
       if (!landedTile) {
         return landingPosition;
       }
+
+      triggerTileAnimation(landingPosition, landedTile.type, playerId);
 
       const resolution = resolveTileLanding({
         tile: landedTile,
@@ -259,7 +297,7 @@ export function GamePage() {
 
       return resolution.finalPosition;
     },
-    [boardMood, players, updatePlayerPosition],
+    [boardMood, players, triggerTileAnimation, updatePlayerPosition],
   );
 
   /**
@@ -623,6 +661,9 @@ export function GamePage() {
           players={players}
           tiles={boardTiles}
           mutatingTiles={mutatingTiles}
+          activeTileEffect={activeTileEffect}
+          playerMotions={playerMotions}
+          isRumbling={boardstormActive}
         />
         <BoardstormOverlay active={boardstormActive} />
       </div>

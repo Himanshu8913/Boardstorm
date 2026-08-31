@@ -1,5 +1,6 @@
 import type { Player } from '@/types/player';
 import type { BoardTile } from '@/types/tile';
+import type { ActiveTileEffect, PlayerMotionEffect } from '@/types/animation';
 import { BOARD_COLS, getBoardGrid } from '@/utils/boardLayout';
 import { Tile } from './Tile';
 
@@ -9,12 +10,18 @@ type GameBoardProps = {
   players: Player[];
   tiles: BoardTile[];
   mutatingTiles?: number[];
+  activeTileEffect?: ActiveTileEffect | null;
+  playerMotions?: Map<number, PlayerMotionEffect>;
+  isRumbling?: boolean;
 };
 
 export function GameBoard({
   players,
   tiles,
   mutatingTiles = [],
+  activeTileEffect = null,
+  playerMotions,
+  isRumbling = false,
 }: GameBoardProps) {
   const mutatingSet = new Set(mutatingTiles);
   const tileMap = new Map(tiles.map((tile) => [tile.number, tile]));
@@ -30,8 +37,16 @@ export function GameBoard({
     tilePlayers.sort((a, b) => a.id - b.id);
   }
 
+  const activeEffectType =
+    activeTileEffect &&
+    activeTileEffect.tileNumber !== undefined
+      ? activeTileEffect.effect
+      : null;
+
   return (
-    <div className="w-full max-w-3xl">
+    <div
+      className={`w-full max-w-3xl ${isRumbling ? 'animate-board-rumble' : ''}`}
+    >
       <div
         className="grid gap-0.5 sm:gap-1"
         style={{ gridTemplateColumns: `repeat(${BOARD_COLS}, minmax(0, 1fr))` }}
@@ -45,12 +60,16 @@ export function GameBoard({
               return null;
             }
 
+            const isEffectTile = activeTileEffect?.tileNumber === tileNumber;
+
             return (
               <Tile
                 key={tileNumber}
                 tile={tile}
                 isStart={tileNumber === 1}
                 isMutating={mutatingSet.has(tileNumber)}
+                activeEffect={isEffectTile ? activeEffectType : null}
+                playerMotions={playerMotions}
                 players={playersByTile.get(tileNumber) ?? []}
               />
             );

@@ -5,12 +5,35 @@ type WinnerScreenProps = {
   onRestart: () => void;
 };
 
+const CONFETTI = ['🎉', '✨', '⭐', '🎊', '💫'];
+
 /** Victory overlay shown when a player reaches tile 100. */
 export function WinnerScreen({ winner, onRestart }: WinnerScreenProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 px-4">
-      <div className="flex w-full max-w-md flex-col items-center gap-6 rounded-2xl border border-boardstorm-accent bg-boardstorm-surface p-8 text-center shadow-2xl">
-        <span className="text-5xl" role="img" aria-hidden="true">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        {CONFETTI.map((emoji, index) => (
+          <span
+            key={emoji}
+            className="animate-victory-confetti absolute text-2xl"
+            style={{
+              left: `${15 + index * 17}%`,
+              top: `${20 + (index % 3) * 15}%`,
+              animationDelay: `${index * 0.15}s`,
+            }}
+            aria-hidden="true"
+          >
+            {emoji}
+          </span>
+        ))}
+      </div>
+
+      <div className="animate-victory-pop relative flex w-full max-w-md flex-col items-center gap-6 rounded-2xl border border-boardstorm-accent bg-boardstorm-surface p-8 text-center shadow-2xl shadow-amber-500/10">
+        <span
+          className="animate-victory-shine inline-block text-5xl"
+          role="img"
+          aria-hidden="true"
+        >
           🏆
         </span>
         <div className="flex flex-col gap-2">
