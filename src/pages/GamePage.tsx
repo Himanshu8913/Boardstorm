@@ -1,12 +1,34 @@
 import { useCallback, useState } from 'react';
 import { GameBoard } from '@/components/board/GameBoard';
+import { PlayerDicePanel } from '@/components/dice/PlayerDicePanel';
 import { INITIAL_PLAYERS, type Player } from '@/types/player';
+import type { DieType } from '@/types/dice';
 import { BOARD_TILE_COUNT } from '@/utils/boardLayout';
-import { animatePlayerToPosition } from '@/utils/playerMovement';
+import { playDiceRollAnimation } from '@/utils/diceRollAnimation';
+import { rollDie } from '@/utils/dice';
+import {
+  animatePlayerToPosition,
+  calculateTargetPosition,
+} from '@/utils/playerMovement';
+
+const DEFAULT_DICE: Record<number, DieType> = {
+  1: 'safe',
+  2: 'safe',
+  3: 'safe',
+  4: 'safe',
+};
 
 export function GamePage() {
   const [players, setPlayers] = useState<Player[]>(INITIAL_PLAYERS);
-  const [movingPlayerId, setMovingPlayerId] = useState<number | null>(null);
+  const [selectedDice, setSelectedDice] =
+    useState<Record<number, DieType>>(DEFAULT_DICE);
+  const [displayValues, setDisplayValues] = useState<
+    Record<number, number | null>
+  >({});
+  const [lastRolls, setLastRolls] = useState<Record<number, number | null>>({});
+  const [activePlayerId, setActivePlayerId] = useState<number | null>(null);
+
+  const isBusy = activePlayerId !== null;
 
   const updatePlayerPosition = useCallback(
     (playerId: number, position: number) => {
@@ -19,9 +41,13 @@ export function GamePage() {
     [],
   );
 
-  const movePlayer = useCallback(
-    async (playerId: number, steps: number) => {
-      if (movingPlayerId !== null) {
+  /**
+   * Rolls the chosen die for a player, plays the roll animation,
+   * then moves the token forward by the rolled amount.
+   */
+  const handleRoll = useCallback(
+    async (playerId: number) => {
+      if (isBusy) {
         return;
       }
 
@@ -30,70 +56,59 @@ export function GamePage() {
         return;
       }
 
-      const target = Math.min(
+      const dieType = selectedDice[playerId] ?? 'safe';
+      const rollResult = rollDie(dieType);
+      const target = calculateTargetPosition(
+        player.position,
+        rollResult,
         BOARD_TILE_COUNT,
-        Math.max(1, player.position + steps),
       );
 
-      if (target === player.position) {
-        return;
+      setActivePlayerId(playerId);
+      setDisplayValues((current) => ({ ...current, [playerId]: null }));
+
+      await playDiceRollAnimation(dieType, rollResult, (value) => {
+        setDisplayValues((current) => ({ ...current, [playerId]: value }));
+      });
+
+      setLastRolls((current) => ({ ...current, [playerId]: rollResult }));
+
+      if (target !== player.position) {
+        await animatePlayerToPosition(
+          player.position,
+          target,
+          (position) => updatePlayerPosition(playerId, position),
+        );
       }
 
-      setMovingPlayerId(playerId);
-
-      await animatePlayerToPosition(
-        player.position,
-        target,
-        (position) => updatePlayerPosition(playerId, position),
-      );
-
-      setMovingPlayerId(null);
+      setActivePlayerId(null);
     },
-    [movingPlayerId, players, updatePlayerPosition],
+    [isBusy, players, selectedDice, updatePlayerPosition],
   );
 
   return (
     <section className="flex flex-col items-center gap-6 py-4">
       <h1 className="text-2xl font-bold sm:text-3xl">Game Board</h1>
       <GameBoard players={players} />
-      <div className="flex w-full max-w-3xl flex-col gap-3">
-        <p className="text-center text-sm text-boardstorm-muted">
-          Demo controls — move tokens programmatically
-        </p>
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-          {players.map((player) => (
-            <div
-              key={player.id}
-              className="flex items-center justify-between gap-2 rounded-lg border border-slate-700 bg-boardstorm-surface px-3 py-2"
-            >
-              <span className="flex items-center gap-2 text-sm font-medium">
-                <span
-                  className="inline-block h-3 w-3 rounded-full"
-                  style={{ backgroundColor: player.color }}
-                />
-                {player.name} — Tile {player.position}
-              </span>
-              <div className="flex gap-1">
-                <button
-                  type="button"
-                  disabled={movingPlayerId !== null}
-                  onClick={() => movePlayer(player.id, 3)}
-                  className="rounded-md bg-slate-700 px-2 py-1 text-xs font-medium text-white hover:bg-slate-600 disabled:opacity-50"
-                >
-                  +3
-                </button>
-                <button
-                  type="button"
-                  disabled={movingPlayerId !== null}
-                  onClick={() => movePlayer(player.id, -2)}
-                  className="rounded-md bg-slate-700 px-2 py-1 text-xs font-medium text-white hover:bg-slate-600 disabled:opacity-50"
-                >
-                  -2
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
+      <div className="grid w-full max-w-3xl grid-cols-1 gap-3 sm:grid-cols-2">
+        {players.map((player) => (
+          <PlayerDicePanel
+            key={player.id}
+            player={player}
+            selectedDie={selectedDice[player.id] ?? 'safe'}
+            displayValue={displayValues[player.id] ?? null}
+            lastRoll={lastRolls[player.id] ?? null}
+            isRolling={activePlayerId === player.id}
+            isDisabled={isBusy}
+            onSelectDie={(dieType) =>
+              setSelectedDice((current) => ({
+                ...current,
+                [player.id]: dieType,
+              }))
+            }
+            onRoll={() => handleRoll(player.id)}
+          />
+        ))}
       </div>
     </section>
   );
